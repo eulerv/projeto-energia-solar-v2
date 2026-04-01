@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -40,41 +40,78 @@ const ScrollCard = ({
   );
 };
 
+const TOTAL_PANELS = 3;
+
 const Index = () => {
   const horizontalRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const currentPanel = useRef(0);
+  const isTransitioning = useRef(false);
+  const isLocked = useRef(false);
 
   useEffect(() => {
-    const container = containerRef.current;
-    const horizontal = horizontalRef.current;
-    if (!container || !horizontal) return;
+    const snapContainer = document.querySelector('.snap-container') as HTMLElement;
+    if (!snapContainer) return;
 
     const handleWheel = (e: WheelEvent) => {
-      // Check if we're in the horizontal section
-      const containerRect = container.getBoundingClientRect();
-      const isInView = containerRect.top <= 0 && containerRect.bottom >= window.innerHeight;
+      const container = containerRef.current;
+      const horizontal = horizontalRef.current;
+      if (!container || !horizontal) return;
 
-      if (!isInView) return;
+      const rect = container.getBoundingClientRect();
+      // Check if the horizontal section is snapped (visible and near top)
+      const isSnapped = rect.top > -50 && rect.top < 50;
 
-      const scrollLeft = horizontal.scrollLeft;
-      const maxScroll = horizontal.scrollWidth - horizontal.clientWidth;
+      if (!isSnapped && !isLocked.current) return;
 
-      // If scrolling down and not at end of horizontal, scroll horizontally
-      if (e.deltaY > 0 && scrollLeft < maxScroll - 5) {
-        e.preventDefault();
-        horizontal.scrollBy({ left: window.innerWidth, behavior: "smooth" });
+      // Once we enter, lock until all panels are traversed
+      if (isSnapped && !isLocked.current) {
+        isLocked.current = true;
+        // Determine current panel from scroll position
+        const panelWidth = horizontal.clientWidth;
+        currentPanel.current = Math.round(horizontal.scrollLeft / panelWidth);
       }
-      // If scrolling up and not at start of horizontal, scroll horizontally back
-      else if (e.deltaY < 0 && scrollLeft > 5) {
-        e.preventDefault();
-        horizontal.scrollBy({ left: -window.innerWidth, behavior: "smooth" });
+
+      const goingDown = e.deltaY > 0;
+      const goingUp = e.deltaY < 0;
+
+      // At first panel scrolling up → release lock, let vertical scroll happen
+      if (goingUp && currentPanel.current === 0) {
+        isLocked.current = false;
+        return;
       }
+
+      // At last panel scrolling down → release lock, let vertical scroll happen
+      if (goingDown && currentPanel.current === TOTAL_PANELS - 1) {
+        isLocked.current = false;
+        return;
+      }
+
+      // Otherwise, consume the scroll event and move horizontally
+      e.preventDefault();
+
+      if (isTransitioning.current) return;
+
+      isTransitioning.current = true;
+
+      if (goingDown) {
+        currentPanel.current = Math.min(currentPanel.current + 1, TOTAL_PANELS - 1);
+      } else if (goingUp) {
+        currentPanel.current = Math.max(currentPanel.current - 1, 0);
+      }
+
+      const target = currentPanel.current * horizontal.clientWidth;
+      horizontal.scrollTo({ left: target, behavior: "smooth" });
+
+      // Cooldown to prevent skipping
+      setTimeout(() => {
+        isTransitioning.current = false;
+      }, 800);
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
+    snapContainer.addEventListener("wheel", handleWheel, { passive: false });
+    return () => snapContainer.removeEventListener("wheel", handleWheel);
   }, []);
-
   return (
     <div className="snap-container">
       <Navbar />
