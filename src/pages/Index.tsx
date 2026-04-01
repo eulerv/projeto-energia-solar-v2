@@ -1,10 +1,11 @@
+import { useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Sun, Leaf, TrendingDown, Zap, Battery, DollarSign, Calculator } from "lucide-react";
 import solarHero from "@/assets/solar-hero.jpg";
 import solarInstall from "@/assets/solar-install.jpg";
-import solarFamily from "@/assets/solar-family.jpg";
+import solarFamily from "@/assets/solar-family.avif";
 import solarHands from "@/assets/solar-hands.jpg";
 
 const ScrollCard = ({
@@ -40,13 +41,47 @@ const ScrollCard = ({
 };
 
 const Index = () => {
+  const horizontalRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const horizontal = horizontalRef.current;
+    if (!container || !horizontal) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Check if we're in the horizontal section
+      const containerRect = container.getBoundingClientRect();
+      const isInView = containerRect.top <= 0 && containerRect.bottom >= window.innerHeight;
+
+      if (!isInView) return;
+
+      const scrollLeft = horizontal.scrollLeft;
+      const maxScroll = horizontal.scrollWidth - horizontal.clientWidth;
+
+      // If scrolling down and not at end of horizontal, scroll horizontally
+      if (e.deltaY > 0 && scrollLeft < maxScroll - 5) {
+        e.preventDefault();
+        horizontal.scrollBy({ left: window.innerWidth, behavior: "smooth" });
+      }
+      // If scrolling up and not at start of horizontal, scroll horizontally back
+      else if (e.deltaY < 0 && scrollLeft > 5) {
+        e.preventDefault();
+        horizontal.scrollBy({ left: -window.innerWidth, behavior: "smooth" });
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="snap-container">
       <Navbar />
       <ScrollToTop />
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center">
+      <section id="home" className="snap-section relative flex items-center justify-center">
         <div className="absolute inset-0">
           <img
             src={solarHero}
@@ -77,135 +112,140 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Card 1 — Economia: card de texto maior + imagem menor */}
-      <section className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 items-stretch">
-          <ScrollCard direction="left" className="md:col-span-3">
-            <div className="chamfer-card bg-primary p-8 md:p-12 lg:p-14 text-primary-foreground h-full">
-              <TrendingDown className="w-10 h-10 md:w-12 md:h-12 mb-6" />
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-6">
-                Economize até 95% na sua conta de luz.
-              </h2>
-              <p className="text-primary-foreground/80 text-base md:text-lg leading-relaxed">
-                O investimento em energia solar se paga em poucos anos e gera economia por
-                décadas. Uma energia renovável e limpa, que agora se consolida como realidade no Brasil.
-              </p>
-            </div>
-          </ScrollCard>
+      {/* Horizontal Scroll Container — Sections 2, 3, 4 */}
+      <div ref={containerRef} className="snap-section relative" style={{ height: "100vh" }}>
+        <div
+          ref={horizontalRef}
+          className="horizontal-scroll"
+        >
+          {/* Card 1 — Economia */}
+          <div className="horizontal-panel">
+            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 items-stretch">
+              <ScrollCard direction="left" className="md:col-span-3">
+                <div className="chamfer-card bg-primary p-8 md:p-12 lg:p-14 text-primary-foreground h-full">
+                  <TrendingDown className="w-10 h-10 md:w-12 md:h-12 mb-6" />
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-6">
+                    Economize até 95% na sua conta de luz.
+                  </h2>
+                  <p className="text-primary-foreground/80 text-base md:text-lg leading-relaxed">
+                    O investimento em energia solar se paga em poucos anos e gera economia por
+                    décadas. Uma energia renovável e limpa, que agora se consolida como realidade no Brasil.
+                  </p>
+                </div>
+              </ScrollCard>
 
-          <ScrollCard direction="right" delay={200} className="md:col-span-2">
-            <div className="chamfer-card-right overflow-hidden h-full">
-              <img
-                src={solarInstall}
-                alt="Trabalhador instalando painéis solares"
-                className="w-full h-[300px] md:h-full object-cover"
-                loading="lazy"
-                width={800}
-                height={600}
-              />
+              <ScrollCard direction="right" delay={200} className="md:col-span-2">
+                <div className="chamfer-card-right overflow-hidden h-full">
+                  <img
+                    src={solarInstall}
+                    alt="Trabalhador instalando painéis solares"
+                    className="w-full h-[300px] md:h-full object-cover"
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                  />
+                </div>
+              </ScrollCard>
             </div>
-          </ScrollCard>
+          </div>
+
+          {/* Card 2 — Sustentabilidade */}
+          <div className="horizontal-panel">
+            <div id="sobre" className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+              <ScrollCard direction="left" className="md:col-span-5 md:row-span-2">
+                <div className="chamfer-card overflow-hidden h-full">
+                  <img
+                    src={solarFamily}
+                    alt="Família em frente a casa com energia solar"
+                    className="w-full h-[350px] md:h-full object-cover"
+                    loading="lazy"
+                    width={600}
+                    height={800}
+                  />
+                </div>
+              </ScrollCard>
+
+              <ScrollCard direction="right" delay={100} className="md:col-span-7">
+                <div className="chamfer-card-right bg-[hsl(var(--solar-green))] p-8 md:p-10 text-primary-foreground h-full">
+                  <Leaf className="w-10 h-10 mb-4" />
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight mb-4">
+                    Energia limpa. Planeta vivo.
+                  </h2>
+                  <p className="text-primary-foreground/80 text-base md:text-lg leading-relaxed">
+                    Cada painel solar instalado reduz a emissão de CO₂ em toneladas por ano.
+                    Diferente das fontes fósseis, a energia solar não polui, não faz barulho e
+                    não destrói ecossistemas.
+                  </p>
+                </div>
+              </ScrollCard>
+
+              <ScrollCard direction="right" delay={250} className="md:col-span-4">
+                <div className="chamfer-card-sm bg-secondary p-6 md:p-8 h-full">
+                  <Battery className="w-8 h-8 text-primary mb-3" />
+                  <p className="text-lg md:text-xl font-bold text-foreground mb-2">25+ anos</p>
+                  <p className="text-sm text-muted-foreground">Vida útil média de um sistema solar residencial</p>
+                </div>
+              </ScrollCard>
+
+              <ScrollCard direction="right" delay={400} className="md:col-span-3">
+                <div className="chamfer-card-sm bg-secondary p-6 md:p-8 h-full">
+                  <DollarSign className="w-8 h-8 text-[hsl(var(--solar-green))] mb-3" />
+                  <p className="text-lg md:text-xl font-bold text-foreground mb-2">4-6 anos</p>
+                  <p className="text-sm text-muted-foreground">Retorno do investimento</p>
+                </div>
+              </ScrollCard>
+            </div>
+          </div>
+
+          {/* Card 3 — Acessibilidade */}
+          <div className="horizontal-panel">
+            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
+              <ScrollCard direction="left">
+                <div className="chamfer-card bg-secondary p-8 md:p-12 lg:p-16">
+                  <Zap className="w-12 h-12 md:w-14 md:h-14 text-primary mb-6" />
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground leading-tight mb-6">
+                    Faça parte desse movimento, a energia solar é para todos.
+                  </h2>
+                  <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                    Uma tecnologia acessível, cada vez mais barata e durável, financiamento acessível, energia limpa sem emissão de carbono. O futuro é agora.
+                  </p>
+                </div>
+              </ScrollCard>
+
+              <ScrollCard direction="right" delay={200}>
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
+                  <div className="chamfer-card-sm overflow-hidden">
+                    <img
+                      src={solarHands}
+                      alt="Mãos segurando painel solar"
+                      className="w-full h-[200px] md:h-[240px] object-cover"
+                      loading="lazy"
+                      width={600}
+                      height={600}
+                    />
+                  </div>
+                  <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
+                    <p className="text-2xl md:text-3xl font-black text-gradient-solar">2 milhões+</p>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">Sistemas instalados no Brasil</p>
+                  </div>
+                  <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
+                    <p className="text-2xl md:text-3xl font-black text-gradient-solar">R$ 200 bi</p>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">Investidos desde 2012</p>
+                  </div>
+                  <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
+                    <p className="text-2xl md:text-3xl font-black text-gradient-solar">40 GW</p>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">De capacidade instalada</p>
+                  </div>
+                </div>
+              </ScrollCard>
+            </div>
+          </div>
         </div>
-      </section>
-
-      {/* Card 2 — Sustentabilidade: 1 card grande à esquerda + 3 menores à direita */}
-      <section id="sobre" className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          {/* Card grande com imagem */}
-          <ScrollCard direction="left" className="md:col-span-5 md:row-span-2">
-            <div className="chamfer-card overflow-hidden h-full">
-              <img
-                src={solarFamily}
-                alt="Família em frente a casa com energia solar"
-                className="w-full h-[350px] md:h-full object-cover"
-                loading="lazy"
-                width={600}
-                height={800}
-              />
-            </div>
-          </ScrollCard>
-
-          {/* Card verde principal */}
-          <ScrollCard direction="right" delay={100} className="md:col-span-7">
-            <div className="chamfer-card-right bg-[hsl(var(--solar-green))] p-8 md:p-10 text-primary-foreground h-full">
-              <Leaf className="w-10 h-10 mb-4" />
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight mb-4">
-                Energia limpa. Planeta vivo.
-              </h2>
-              <p className="text-primary-foreground/80 text-base md:text-lg leading-relaxed">
-                Cada painel solar instalado reduz a emissão de CO₂ em toneladas por ano.
-                Diferente das fontes fósseis, a energia solar não polui, não faz barulho e
-                não destrói ecossistemas.
-              </p>
-            </div>
-          </ScrollCard>
-
-          {/* 2 cards pequenos lado a lado */}
-          <ScrollCard direction="right" delay={250} className="md:col-span-4">
-            <div className="chamfer-card-sm bg-secondary p-6 md:p-8 h-full">
-              <Battery className="w-8 h-8 text-primary mb-3" />
-              <p className="text-lg md:text-xl font-bold text-foreground mb-2">25+ anos</p>
-              <p className="text-sm text-muted-foreground">Vida útil média de um sistema solar residencial</p>
-            </div>
-          </ScrollCard>
-
-          <ScrollCard direction="right" delay={400} className="md:col-span-3">
-            <div className="chamfer-card-sm bg-secondary p-6 md:p-8 h-full">
-              <DollarSign className="w-8 h-8 text-[hsl(var(--solar-green))] mb-3" />
-              <p className="text-lg md:text-xl font-bold text-foreground mb-2">4-6 anos</p>
-              <p className="text-sm text-muted-foreground">Retorno do investimento</p>
-            </div>
-          </ScrollCard>
-        </div>
-      </section>
-
-      {/* Card 3 — Acessibilidade */}
-      <section className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
-          <ScrollCard direction="left">
-            <div className="chamfer-card bg-secondary p-8 md:p-12 lg:p-16">
-              <Zap className="w-12 h-12 md:w-14 md:h-14 text-primary mb-6" />
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground leading-tight mb-6">
-                Faça parte desse movimento, a energia solar é para todos.
-              </h2>
-              <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
-                Uma tecnologia acessível, cada vez mais barata e durável, financiamento acessível, energia limpa sem emissão de carbono. O futuro é agora.
-              </p>
-            </div>
-          </ScrollCard>
-
-          <ScrollCard direction="right" delay={200}>
-            <div className="grid grid-cols-2 gap-4 md:gap-6">
-              <div className="chamfer-card-sm overflow-hidden">
-                <img
-                  src={solarHands}
-                  alt="Mãos segurando painel solar"
-                  className="w-full h-[200px] md:h-[240px] object-cover"
-                  loading="lazy"
-                  width={600}
-                  height={600}
-                />
-              </div>
-              <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
-                <p className="text-2xl md:text-3xl font-black text-gradient-solar">2 milhões+</p>
-                <p className="text-xs md:text-sm text-muted-foreground mt-1">Sistemas instalados no Brasil</p>
-              </div>
-              <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
-                <p className="text-2xl md:text-3xl font-black text-gradient-solar">R$ 200 bi</p>
-                <p className="text-xs md:text-sm text-muted-foreground mt-1">Investidos desde 2012</p>
-              </div>
-              <div className="chamfer-card-sm bg-primary/10 border border-primary/20 p-6 flex flex-col justify-center">
-                <p className="text-2xl md:text-3xl font-black text-gradient-solar">40 GW</p>
-                <p className="text-xs md:text-sm text-muted-foreground mt-1">De capacidade instalada</p>
-              </div>
-            </div>
-          </ScrollCard>
-        </div>
-      </section>
+      </div>
 
       {/* Calculadora Solar — Esboço */}
-      <section className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto">
+      <section className="snap-section flex items-center px-4 md:px-6">
+        <div className="max-w-[1400px] mx-auto w-full">
           <ScrollCard>
             <div className="chamfer-card bg-secondary border border-border p-8 md:p-14 lg:p-16">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -225,7 +265,6 @@ const Index = () => {
                   </span>
                 </div>
 
-                {/* Preview mockup da calculadora */}
                 <div className="chamfer-card-sm bg-background border border-border p-6 md:p-8 space-y-5 opacity-60">
                   <div>
                     <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Valor da conta de luz (R$)</p>
@@ -260,8 +299,8 @@ const Index = () => {
       </section>
 
       {/* CTA Pesquisa */}
-      <section id="pesquisa" className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto max-w-5xl text-center">
+      <section id="pesquisa" className="snap-section flex items-center px-4 md:px-6">
+        <div className="max-w-[1400px] mx-auto max-w-5xl text-center w-full">
           <ScrollCard>
             <div className="chamfer-card bg-primary p-10 md:p-16 lg:p-20">
               <Sun className="w-14 h-14 md:w-16 md:h-16 text-primary-foreground mx-auto mb-8 animate-spin" style={{ animationDuration: '8s' }} />
