@@ -37,7 +37,7 @@ const Navbar = () => {
             href="#sobre"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300"
           >
-            Sobre
+            Sobre nós
           </a>
           <a
             href="#pesquisa"
