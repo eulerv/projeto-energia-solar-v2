@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { Sun } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -26,7 +28,8 @@ const Navbar = () => {
           </span>
         </a>
 
-        <div className="flex items-center gap-8">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8">
           <a
             href="#home"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300"
@@ -47,6 +50,41 @@ const Navbar = () => {
             <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
           </a>
         </div>
+
+        {/* Mobile Menu */}
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <button className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <Menu className="w-6 h-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <div className="flex flex-col gap-6 mt-6">
+              <a
+                href="#home"
+                className="text-lg text-muted-foreground hover:text-foreground transition-colors duration-300"
+                onClick={() => setIsOpen(false)}
+              >
+                Home
+              </a>
+              <a
+                href="#sobre"
+                className="text-lg text-muted-foreground hover:text-foreground transition-colors duration-300"
+                onClick={() => setIsOpen(false)}
+              >
+                Sobre nós
+              </a>
+              <a
+                href="#pesquisa"
+                className="relative text-lg font-semibold px-5 py-3 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105 inline-block"
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="relative z-10">Participe da pesquisa</span>
+                <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
+              </a>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   );

@@ -98,6 +98,22 @@
   flex-shrink: 0;
 }
 
+/* Mobile adjustments - make sections vertical */
+@media (max-width: 768px) {
+  .horizontal-scroll {
+    flex-direction: column;
+    height: auto;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+
+  .horizontal-panel {
+    min-width: 100%;
+    height: auto;
+    scroll-snap-align: none;
+  }
+}
+
 @layer utilities {
   .chamfer-card {
     clip-path: polygon(
