@@ -203,6 +203,62 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Calculadora Solar — Esboço */}
+      <section className="py-20 md:py-32 px-4 md:px-6">
+        <div className="max-w-[1400px] mx-auto">
+          <ScrollCard>
+            <div className="chamfer-card bg-secondary border border-border p-8 md:p-14 lg:p-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div>
+                  <Calculator className="w-10 h-10 md:w-12 md:h-12 text-primary mb-6" />
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground leading-tight mb-4">
+                    Calcule seu potencial{" "}
+                    <span className="text-gradient-solar">#solar</span>
+                  </h2>
+                  <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
+                    Descubra quanto você pode economizar com energia solar. Insira o valor
+                    da sua conta de luz e veja a estimativa de economia, retorno do
+                    investimento e impacto ambiental.
+                  </p>
+                  <span className="inline-block chamfer-card-sm bg-primary/10 border border-primary/20 text-primary font-semibold text-sm px-6 py-3">
+                    Em breve
+                  </span>
+                </div>
+
+                {/* Preview mockup da calculadora */}
+                <div className="chamfer-card-sm bg-background border border-border p-6 md:p-8 space-y-5 opacity-60">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Valor da conta de luz (R$)</p>
+                    <div className="h-11 bg-muted/50 border border-border chamfer-card-sm" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Estado</p>
+                    <div className="h-11 bg-muted/50 border border-border chamfer-card-sm" />
+                  </div>
+                  <div className="h-11 bg-primary/20 border border-primary/30 chamfer-card-sm flex items-center justify-center">
+                    <p className="text-primary font-bold text-sm">Calcular economia</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    <div className="chamfer-card-sm bg-muted/30 border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Economia/mês</p>
+                      <p className="text-sm font-bold text-foreground mt-1">R$ ---</p>
+                    </div>
+                    <div className="chamfer-card-sm bg-muted/30 border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Retorno</p>
+                      <p className="text-sm font-bold text-foreground mt-1">-- anos</p>
+                    </div>
+                    <div className="chamfer-card-sm bg-muted/30 border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">CO₂ evitado</p>
+                      <p className="text-sm font-bold text-foreground mt-1">-- ton</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollCard>
+        </div>
+      </section>
+
       {/* CTA Pesquisa */}
       <section id="pesquisa" className="py-20 md:py-32 px-4 md:px-6">
         <div className="max-w-[1400px] mx-auto max-w-5xl text-center">
