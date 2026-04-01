@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import { Sun, Leaf, TrendingDown, Zap, Battery, DollarSign } from "lucide-react";
+import { Sun, Leaf, TrendingDown, Zap, Battery, DollarSign, Calculator } from "lucide-react";
 import solarHero from "@/assets/solar-hero.jpg";
 import solarInstall from "@/assets/solar-install.jpg";
 import solarFamily from "@/assets/solar-family.jpg";
