@@ -300,33 +300,33 @@ const Index = () => {
                     da sua conta de luz e veja a estimativa de economia, retorno do
                     investimento e impacto ambiental.
                   </p>
-                  <span className="inline-block chamfer-card-sm bg-primary/10 border border-primary/20 text-primary font-semibold text-sm px-4 md:px-6 py-2 md:py-3">
+                  <span className="inline-block bg-primary/10 border border-primary/20 text-primary font-semibold text-sm px-4 md:px-6 py-2 md:py-3">
                     Em breve
                   </span>
                 </div>
 
-                <div className="chamfer-card-sm bg-background border border-border p-4 md:p-8 space-y-4 md:space-y-5 opacity-60">
+                <div className="bg-background border border-border p-4 md:p-8 space-y-4 md:space-y-5 opacity-60">
                   <div>
                     <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Valor da conta de luz (R$)</p>
-                    <div className="h-10 md:h-11 bg-muted/50 border border-border chamfer-card-sm" />
+                    <div className="h-10 md:h-11 bg-muted/50 border border-border" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Estado</p>
-                    <div className="h-10 md:h-11 bg-muted/50 border border-border chamfer-card-sm" />
+                    <div className="h-10 md:h-11 bg-muted/50 border border-border" />
                   </div>
-                  <div className="h-10 md:h-11 bg-primary/20 border border-primary/30 chamfer-card-sm flex items-center justify-center">
+                  <div className="h-10 md:h-11 bg-primary/20 border border-primary/30 flex items-center justify-center">
                     <p className="text-primary font-bold text-sm">Calcular economia</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2 md:gap-3 pt-2">
-                    <div className="chamfer-card-sm bg-muted/30 border border-border p-2 md:p-3 text-center">
+                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
                       <p className="text-xs text-muted-foreground">Economia/mês</p>
                       <p className="text-sm font-bold text-foreground mt-1">R$ ---</p>
                     </div>
-                    <div className="chamfer-card-sm bg-muted/30 border border-border p-2 md:p-3 text-center">
+                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
                       <p className="text-xs text-muted-foreground">Retorno</p>
                       <p className="text-sm font-bold text-foreground mt-1">-- anos</p>
                     </div>
-                    <div className="chamfer-card-sm bg-muted/30 border border-border p-2 md:p-3 text-center">
+                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
                       <p className="text-xs text-muted-foreground">CO₂ evitado</p>
                       <p className="text-sm font-bold text-foreground mt-1">-- ton</p>
                     </div>
