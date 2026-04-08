@@ -66,51 +66,56 @@
   }
 }
 
-/* Snap scrolling */
-.snap-container {
-  height: 100vh;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-}
-
-.snap-section {
+/* Full-height vertical sections */
+.section-full {
   min-height: 100vh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-/* Horizontal scroll panels */
-.horizontal-scroll {
-  display: flex;
-  height: 100vh;
-  overflow-x: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-}
-
-.horizontal-panel {
-  min-width: 100vw;
-  height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  scroll-snap-align: start;
+}
+
+/* Horizontal scroll wrapper — pinned by GSAP on desktop */
+.horizontal-wrapper {
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .horizontal-wrapper {
+    height: 100vh;
+  }
+}
+
+/* Horizontal scroll track */
+.horizontal-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  will-change: transform;
+}
+
+/* Each horizontal panel = full viewport */
+.horizontal-panel {
   flex-shrink: 0;
 }
 
-/* Mobile adjustments - make sections vertical */
-@media (max-width: 768px) {
+@media (min-width: 768px) {
+  .horizontal-panel {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Mobile — stack vertically */
+@media (max-width: 767px) {
   .horizontal-scroll {
     flex-direction: column;
-    height: auto;
-    overflow-x: visible;
-    scroll-snap-type: none;
   }
 
   .horizontal-panel {
-    min-width: 100%;
-    height: auto;
-    scroll-snap-align: none;
+    width: 100%;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
   }
 }
 

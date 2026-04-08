@@ -6,8 +6,13 @@ import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Battery, Calculator, DollarSign, Leaf, Sun, TrendingDown, Zap } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── Scroll-reveal card (IntersectionObserver — works inside pinned/horizontal) ── */
 const ScrollCard = ({
   children,
   delay = 0,
@@ -43,85 +48,52 @@ const ScrollCard = ({
 const TOTAL_PANELS = 3;
 
 const Index = () => {
-  const horizontalRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const currentPanel = useRef(0);
-  const isTransitioning = useRef(false);
-  const isLocked = useRef(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const snapContainer = document.querySelector('.snap-container') as HTMLElement;
-    if (!snapContainer) return;
+  useLayoutEffect(() => {
+    const mm = gsap.matchMedia();
 
-    const handleWheel = (e: WheelEvent) => {
-      // Only enable horizontal scroll on desktop (md and above)
-      if (window.innerWidth < 768) return;
+    mm.add("(min-width: 768px)", () => {
+      const track = trackRef.current;
+      const wrapper = wrapperRef.current;
+      if (!track || !wrapper) return;
 
-      const container = containerRef.current;
-      const horizontal = horizontalRef.current;
-      if (!container || !horizontal) return;
+      // Animate the track from x=0 to x=-(N-1)*viewportWidth
+      gsap.to(track, {
+        x: () => -(window.innerWidth * (TOTAL_PANELS - 1)),
+        ease: "none",
+        scrollTrigger: {
+          trigger: wrapper,
+          pin: true,
+          anticipatePin: 1,
+          start: "top top",
+          end: () => "+=" + window.innerWidth * (TOTAL_PANELS - 1),
+          scrub: 0.5,
+          snap: {
+            snapTo: 1 / (TOTAL_PANELS - 1),
+            duration: { min: 0.2, max: 0.5 },
+            delay: 0,
+            ease: "power1.inOut",
+          },
+          invalidateOnRefresh: true,
+        },
+      });
 
-      const rect = container.getBoundingClientRect();
-      // Check if the horizontal section is snapped (visible and near top)
-      const isSnapped = rect.top > -50 && rect.top < 50;
+      // Recalculate after images finish loading
+      window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
+    });
 
-      if (!isSnapped && !isLocked.current) return;
-
-      // Once we enter, lock until all panels are traversed
-      if (isSnapped && !isLocked.current) {
-        isLocked.current = true;
-        // Determine current panel from scroll position
-        const panelWidth = horizontal.clientWidth;
-        currentPanel.current = Math.round(horizontal.scrollLeft / panelWidth);
-      }
-
-      const goingDown = e.deltaY > 0;
-      const goingUp = e.deltaY < 0;
-
-      // At first panel scrolling up → release lock, let vertical scroll happen
-      if (goingUp && currentPanel.current === 0) {
-        isLocked.current = false;
-        return;
-      }
-
-      // At last panel scrolling down → release lock, let vertical scroll happen
-      if (goingDown && currentPanel.current === TOTAL_PANELS - 1) {
-        isLocked.current = false;
-        return;
-      }
-
-      // Otherwise, consume the scroll event and move horizontally
-      e.preventDefault();
-
-      if (isTransitioning.current) return;
-
-      isTransitioning.current = true;
-
-      if (goingDown) {
-        currentPanel.current = Math.min(currentPanel.current + 1, TOTAL_PANELS - 1);
-      } else if (goingUp) {
-        currentPanel.current = Math.max(currentPanel.current - 1, 0);
-      }
-
-      const target = currentPanel.current * horizontal.clientWidth;
-      horizontal.scrollTo({ left: target, behavior: "smooth" });
-
-      // Cooldown to prevent skipping
-      setTimeout(() => {
-        isTransitioning.current = false;
-      }, 800);
-    };
-
-    snapContainer.addEventListener("wheel", handleWheel, { passive: false });
-    return () => snapContainer.removeEventListener("wheel", handleWheel);
+    return () => mm.revert();
   }, []);
+
   return (
-    <div className="snap-container">
+    <div>
       <Navbar />
       <ScrollToTop />
 
       {/* Hero Section */}
-      <section id="home" className="snap-section relative flex items-center justify-center">
+      <section id="home" className="section-full relative flex items-center justify-center">
         <div className="absolute inset-0">
           <img
             src={solarHero}
@@ -152,14 +124,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Horizontal Scroll Container — Sections 2, 3, 4 (Desktop) / Vertical Sections (Mobile) */}
-      <div ref={containerRef} className="snap-section relative md:h-[100vh] h-auto">
-        <div
-          ref={horizontalRef}
-          className="horizontal-scroll md:flex md:flex-row flex-col"
-        >
-          {/* Card 1 — Economia */}
-          <div className="horizontal-panel md:min-w-[100vw] md:h-[100vh] h-auto py-12 md:py-0">
+      {/* ── Horizontal Scroll Section (Desktop) / Vertical (Mobile) ── */}
+      <div ref={wrapperRef} className="horizontal-wrapper">
+        <div ref={trackRef} className="horizontal-scroll">
+
+          {/* Panel 1 — Economia */}
+          <div className="horizontal-panel">
             <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 items-stretch">
               <ScrollCard direction="left" className="md:col-span-3">
                 <div className="chamfer-card bg-primary p-6 md:p-12 lg:p-14 text-primary-foreground h-full">
@@ -189,8 +159,8 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Card 2 — Sustentabilidade */}
-          <div className="horizontal-panel md:min-w-[100vw] md:h-[100vh] h-auto py-12 md:py-0">
+          {/* Panel 2 — Sustentabilidade */}
+          <div className="horizontal-panel">
             <div id="sobre" className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
               <ScrollCard direction="left" className="md:col-span-5 md:row-span-2">
                 <div className="chamfer-card overflow-hidden h-full min-h-[300px] md:min-h-[400px]">
@@ -237,8 +207,8 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Card 3 — Acessibilidade */}
-          <div className="horizontal-panel md:min-w-[100vw] md:h-[100vh] h-auto py-12 md:py-0">
+          {/* Panel 3 — Acessibilidade */}
+          <div className="horizontal-panel">
             <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
               <ScrollCard direction="left">
                 <div className="chamfer-card bg-secondary p-6 md:p-12 lg:p-16">
@@ -280,11 +250,12 @@ const Index = () => {
               </ScrollCard>
             </div>
           </div>
+
         </div>
       </div>
 
       {/* Calculadora Solar — Esboço */}
-      <section className="snap-section flex items-center px-4 md:px-6">
+      <section className="section-full px-4 md:px-6">
         <div className="max-w-[1400px] mx-auto w-full">
           <ScrollCard>
             <div className="chamfer-card bg-secondary border border-border p-6 md:p-14 lg:p-16">
@@ -339,7 +310,7 @@ const Index = () => {
       </section>
 
       {/* CTA Pesquisa */}
-      <section id="pesquisa" className="snap-section flex items-center px-4 md:px-6">
+      <section id="pesquisa" className="section-full px-4 md:px-6">
         <div className="max-w-[1400px] mx-auto max-w-5xl text-center w-full">
           <ScrollCard>
             <div className="chamfer-card bg-primary p-8 md:p-16 lg:p-20">
