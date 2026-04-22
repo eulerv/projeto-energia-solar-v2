@@ -43,7 +43,7 @@ const Navbar = () => {
             Sobre nós
           </a>
           <a
-            href="#pesquisa"
+            href="/survey"
             className="relative text-sm font-semibold px-5 py-2.5 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105"
           >
             <span className="relative z-10">Participe da pesquisa</span>
@@ -75,7 +75,7 @@ const Navbar = () => {
                 Sobre nós
               </a>
               <a
-                href="#pesquisa"
+                href="/survey"
                 className="relative text-lg font-semibold px-5 py-3 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105 inline-block"
                 onClick={() => setIsOpen(false)}
               >

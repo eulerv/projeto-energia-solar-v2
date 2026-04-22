@@ -255,6 +255,7 @@ const Index = () => {
       </div>
 
       {/* Calculadora Solar — Esboço */}
+      {/* Hardcoded, criar como componente */}
       <section className="section-full px-4 md:px-6">
         <div className="max-w-[1400px] mx-auto w-full">
           <ScrollCard>
