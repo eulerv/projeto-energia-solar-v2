@@ -1,6 +1,7 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -42,13 +43,13 @@ const Navbar = () => {
           >
             Sobre nós
           </a>
-          <a
-            href="/survey"
+          <Link
+            to="/survey"
             className="relative text-sm font-semibold px-5 py-2.5 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105"
           >
             <span className="relative z-10">Participe da pesquisa</span>
             <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Menu */}
@@ -74,14 +75,14 @@ const Navbar = () => {
               >
                 Sobre nós
               </a>
-              <a
-                href="/survey"
+              <Link
+                to="/survey"
                 className="relative text-lg font-semibold px-5 py-3 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105 inline-block"
                 onClick={() => setIsOpen(false)}
               >
                 <span className="relative z-10">Participe da pesquisa</span>
                 <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
-              </a>
+              </Link>
             </div>
           </SheetContent>
         </Sheet>

@@ -4,6 +4,7 @@ import { useMask } from "@/hooks/useMask";
 import gsap from "gsap";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type SurveyStep = "intro" | "form" | "finished";
 
@@ -20,6 +21,7 @@ interface FormData {
 }
 
 const Survey = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<SurveyStep>("intro");
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -415,14 +417,14 @@ const Survey = () => {
                 </div>
 
                 <div className="animate-text pt-4">
-                  <a
-                    href="/"
-                    className="relative text-base md:text-lg font-bold px-8 md:px-10 py-4 md:py-5 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center gap-3"
+                  <button
+                    onClick={() => navigate("/")}
+                    className="relative text-base md:text-lg font-bold px-8 md:px-10 py-4 md:py-5 bg-primary text-primary-foreground chamfer-card-sm overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center gap-3 cursor-pointer"
                   >
                     <span className="relative z-10">Voltar para Home</span>
                     <ChevronRight className="w-5 h-5 relative z-10" />
                     <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
