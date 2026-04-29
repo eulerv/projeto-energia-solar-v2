@@ -318,6 +318,100 @@ const Survey = () => {
     </section>
   );
 
+  const renderEnvironmentalContent = () => (
+    <section
+      ref={contentRef}
+      className="min-h-screen flex items-center justify-center px-4 md:px-6 py-24"
+    >
+      <div className="max-w-5xl w-full mx-auto">
+        <div className="chamfer-card bg-secondary border border-border p-8 md:p-16 lg:p-20">
+          <div className="space-y-8">
+            <div className="animate-text space-y-4">
+              <p className="text-sm uppercase tracking-[0.25em] text-primary font-bold">
+                Tela 1
+              </p>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground leading-tight">
+                Foco no planeta: impacto ambiental e legado
+              </h2>
+              <p className="text-lg md:text-2xl font-bold text-gradient-solar">
+                Sua casa pode ajudar a mudar o clima.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+              <div className="animate-text bg-background/70 border border-border p-5 md:p-6">
+                <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
+                  Redução real de CO₂
+                </h3>
+                <p className="text-3xl md:text-4xl font-black text-primary mb-3">
+                  350 kg/mês
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Um sistema residencial médio, perto de 3 kWp, pode evitar cerca de 350 kg de
+                  CO₂ por mês. Em um ano, isso passa de 3.000 kg de CO₂ que deixam de ir para a
+                  atmosfera.
+                </p>
+              </div>
+
+              <div className="animate-text bg-background/70 border border-border p-5 md:p-6">
+                <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
+                  Energia que não consome água
+                </h3>
+                <p className="text-3xl md:text-4xl font-black text-primary mb-3">
+                  8 L a cada 100 kWh
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  A geração solar não usa água no processo. Como referência, cada 100 kWh gerados
+                  pelo telhado ajudam a economizar cerca de 8 litros de água que poderiam ser
+                  usados na geração convencional.
+                </p>
+              </div>
+
+              <div className="animate-text bg-background/70 border border-border p-5 md:p-6">
+                <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
+                  Geração perto de quem usa
+                </h3>
+                <p className="text-3xl md:text-4xl font-black text-primary mb-3">
+                  Menos perdas
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Quando a energia nasce no próprio telhado, ela percorre um caminho menor até o
+                  consumo. Isso ajuda a reduzir perdas na transmissão e alivia a rede nos horários
+                  em que muita gente está usando energia ao mesmo tempo.
+                </p>
+              </div>
+
+              <div className="animate-text bg-background/70 border border-border p-5 md:p-6">
+                <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
+                  Limpa, silenciosa e sem ocupar solo
+                </h3>
+                <p className="text-3xl md:text-4xl font-black text-primary mb-3">
+                  0 ruído
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  O sistema não faz barulho, aproveita uma área que já existe e ainda ajuda a
+                  proteger o telhado contra sol forte, chuva e calor direto.
+                </p>
+              </div>
+            </div>
+
+            <div className="animate-text bg-primary/10 border border-primary/25 p-5 md:p-6">
+              <p className="text-base md:text-xl font-bold text-foreground leading-relaxed">
+                Cada telhado solar funciona como uma pequena usina limpa e silenciosa. E quando
+                milhões de telhados fazem isso juntos, eles ajudam a transformar a matriz elétrica
+                do país, que já chegou a 88% de fontes renováveis em 2024.
+              </p>
+            </div>
+
+
+
+            {renderNavButtons()}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div className="snap-container">
       <Navbar />
@@ -384,7 +478,7 @@ const Survey = () => {
       )}
 
       {step === "form1" && renderForm("FORMULÁRIO 1 - PRÉ-ESTUDO", formData, "pre")}
-      {step === "content1" && renderContent("Conteúdo informativo 1")}
+      {step === "content1" && renderEnvironmentalContent()}
       {step === "content2" && renderContent("Conteúdo informativo 2")}
       {step === "form2" && renderForm("FORMULÁRIO 2 - PÓS-ESTUDO", postFormData, "post")}
 
