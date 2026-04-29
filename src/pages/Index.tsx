@@ -433,7 +433,7 @@ const Index = () => {
                 energia solar e como podemos promovê-la juntos.
               </p>
               <Link
-                to="/survey"
+                to="/pesquisa"
                 className="inline-block chamfer-card-sm bg-primary-foreground text-primary font-bold text-sm md:text-lg px-6 md:px-8 py-3 md:py-4 hover:scale-105 transition-transform duration-300"
               >
                 Responder pesquisa →
