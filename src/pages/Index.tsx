@@ -5,10 +5,11 @@ import solarInstall from "@/assets/solar-install.jpg";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import { Battery, Calculator, DollarSign, Leaf, Sun, TrendingDown, Zap } from "lucide-react";
-import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Battery, Calculator, DollarSign, Leaf, Sun, TrendingDown, Zap } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -46,10 +47,73 @@ const ScrollCard = ({
 };
 
 const TOTAL_PANELS = 3;
+const DAYS_PER_MONTH = 30;
+const SOLAR_IRRADIATION_RATE = 4.32;
+const SAFETY_MARGIN = 0.75;
+const AVERAGE_TARIFF_BRL_PER_KWH = 1;
+const GRID_EMISSION_KG_CO2_PER_KWH = 0.0289;
+const KG_CO2_PER_TREE_PER_YEAR = 60;
+
+const PRICE_TABLE = [
+  { maxKwp: 2.99, pricePerKwp: 4600 },
+  { maxKwp: 3, pricePerKwp: 3500 },
+  { maxKwp: 4, pricePerKwp: 3250 },
+  { maxKwp: 5, pricePerKwp: 3000 },
+  { maxKwp: 8, pricePerKwp: 2800 },
+  { maxKwp: 10, pricePerKwp: 2600 },
+  { maxKwp: 20, pricePerKwp: 2400 },
+  { maxKwp: 50, pricePerKwp: 2200 },
+];
+
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+const numberFormatter = new Intl.NumberFormat("pt-BR", {
+  maximumFractionDigits: 1,
+});
+
+const getPricePerKwp = (kwp: number) =>
+  PRICE_TABLE.find((item) => kwp <= item.maxKwp)?.pricePerKwp ?? 2000;
 
 const Index = () => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [monthlyConsumption, setMonthlyConsumption] = useState("");
+  const [hasCalculated, setHasCalculated] = useState(false);
+
+  const calculatorResult = useMemo(() => {
+    const consumption = Number(monthlyConsumption.replace(",", "."));
+
+    if (!Number.isFinite(consumption) || consumption <= 0) {
+      return null;
+    }
+
+    const kwp = consumption / DAYS_PER_MONTH / SOLAR_IRRADIATION_RATE / SAFETY_MARGIN;
+    const pricePerKwp = getPricePerKwp(kwp);
+    const systemCost = kwp * pricePerKwp;
+    const annualSavings = consumption * AVERAGE_TARIFF_BRL_PER_KWH * 12;
+    const paybackYears = systemCost / annualSavings;
+    const avoidedCo2KgPerYear = consumption * 12 * GRID_EMISSION_KG_CO2_PER_KWH;
+    const preservedTrees = avoidedCo2KgPerYear / KG_CO2_PER_TREE_PER_YEAR;
+
+    return {
+      annualSavings,
+      avoidedCo2KgPerYear,
+      kwp,
+      paybackYears,
+      preservedTrees,
+      pricePerKwp,
+      systemCost,
+    };
+  }, [monthlyConsumption]);
+
+  const handleCalculate = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setHasCalculated(true);
+  };
 
   useLayoutEffect(() => {
     const mm = gsap.matchMedia();
@@ -268,41 +332,86 @@ const Index = () => {
                     <span className="text-gradient-solar">#solar</span>
                   </h2>
                   <p className="text-muted-foreground text-sm md:text-lg leading-relaxed mb-4 md:mb-6">
-                    Descubra quanto você pode economizar com energia solar. Insira o valor
-                    da sua conta de luz e veja a estimativa de economia, retorno do
-                    investimento e impacto ambiental.
+                    Insira a média de consumo dos 3 últimos meses, ou a fatura atual de energia.
+                    A partir do seu consumo mensal em kWh, estimaremos o tamanho do sistema, o
+                    investimento, o retorno e o impacto ambiental.
                   </p>
-                  <span className="inline-block bg-primary/10 border border-primary/20 text-primary font-semibold text-sm px-4 md:px-6 py-2 md:py-3">
-                    Em breve
-                  </span>
                 </div>
 
-                <div className="bg-background border border-border p-4 md:p-8 space-y-4 md:space-y-5 opacity-60">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Valor da conta de luz (R$)</p>
-                    <div className="h-10 md:h-11 bg-muted/50 border border-border" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Estado</p>
-                    <div className="h-10 md:h-11 bg-muted/50 border border-border" />
-                  </div>
-                  <div className="h-10 md:h-11 bg-primary/20 border border-primary/30 flex items-center justify-center">
-                    <p className="text-primary font-bold text-sm">Calcular economia</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3 pt-2">
-                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Economia/mês</p>
-                      <p className="text-sm font-bold text-foreground mt-1">R$ ---</p>
+                <div className="bg-background border border-border p-4 md:p-8 space-y-4 md:space-y-5">
+                  <form onSubmit={handleCalculate} className="space-y-4 md:space-y-5">
+                    <label className="block">
+                      <span className="text-xs text-muted-foreground mb-2 uppercase tracking-wider block">
+                        Consumo mensal (kWh)
+                      </span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        inputMode="numeric"
+                        value={monthlyConsumption}
+                        onChange={(event) => setMonthlyConsumption(event.target.value)}
+                        placeholder="Ex.: 450"
+                        className="h-11 w-full bg-muted/50 border border-border px-4 text-foreground outline-none transition-colors duration-300 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
+
+                    <button
+                      type="submit"
+                      className="h-11 w-full bg-primary text-primary-foreground font-bold text-sm transition-transform duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      Calcular
+                    </button>
+                  </form>
+
+                  {hasCalculated && calculatorResult ? (
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
+                        <div className="bg-muted/30 border border-border p-3 text-center">
+                          <p className="text-xs text-muted-foreground">Sistema indicado</p>
+                          <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                            {numberFormatter.format(calculatorResult.kwp)} kWp
+                          </p>
+                        </div>
+                        <div className="bg-muted/30 border border-border p-3 text-center">
+                          <p className="text-xs text-muted-foreground">Investimento</p>
+                          <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                            {currencyFormatter.format(calculatorResult.systemCost)}
+                          </p>
+                        </div>
+                        <div className="bg-muted/30 border border-border p-3 text-center">
+                          <p className="text-xs text-muted-foreground">Retorno</p>
+                          <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                            {numberFormatter.format(calculatorResult.paybackYears)} anos
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                        <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
+                          <p className="text-xs text-muted-foreground">CO₂ evitado por ano</p>
+                          <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                            {numberFormatter.format(calculatorResult.avoidedCo2KgPerYear)} kg
+                          </p>
+                        </div>
+                        <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
+                          <p className="text-xs text-muted-foreground">Árvores equivalentes</p>
+                          <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                            {numberFormatter.format(calculatorResult.preservedTrees)} por ano
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Preço aplicado: {currencyFormatter.format(calculatorResult.pricePerKwp)}/kWp.
+                        Economia anual estimada: {currencyFormatter.format(calculatorResult.annualSavings)}.
+                      </p>
                     </div>
-                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Retorno</p>
-                      <p className="text-sm font-bold text-foreground mt-1">-- anos</p>
-                    </div>
-                    <div className="bg-muted/30 border border-border p-2 md:p-3 text-center">
-                      <p className="text-xs text-muted-foreground">CO₂ evitado</p>
-                      <p className="text-sm font-bold text-foreground mt-1">-- ton</p>
-                    </div>
-                  </div>
+                  ) : hasCalculated ? (
+                    <p className="text-sm text-destructive">
+                      Informe um consumo mensal válido em kWh para calcular.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -323,12 +432,12 @@ const Index = () => {
                 Sua opinião é essencial. Ajude-nos a entender como as pessoas enxergam a
                 energia solar e como podemos promovê-la juntos.
               </p>
-              <a
-                href="#"
+              <Link
+                to="/survey"
                 className="inline-block chamfer-card-sm bg-primary-foreground text-primary font-bold text-sm md:text-lg px-6 md:px-8 py-3 md:py-4 hover:scale-105 transition-transform duration-300"
               >
                 Responder pesquisa →
-              </a>
+              </Link>
             </div>
           </ScrollCard>
         </div>

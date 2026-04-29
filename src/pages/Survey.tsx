@@ -113,31 +113,30 @@ const Survey = () => {
 
                 <div className="animate-text space-y-4 bg-primary/5 border border-primary/20 p-6 md:p-8 chamfer-card">
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    A seguir, inicialmente, você encontrará o{" "}
-                    <span className="font-bold text-foreground">primeiro de dois formulários</span>.
-                    Este primeiro tem como objetivo{" "}
-                    <span className="font-bold text-foreground">
-                      avaliar o seu nível atual de informação
-                    </span>{" "}
-                    sobre energia solar.
+                    A seguir, inicialmente, você encontrará{" "}
+                    <span className="font-bold text-foreground">uma trilha</span>.
+                    contendo um formulário para avaliar{" "}
+                    <span className="font-bold text-foreground">seu conhecimento atual</span>
+                    , um {" "}
+                    <span className="font-bold text-foreground">conteúdo de aprendizado</span>
+                    , a {" "}
+                    <span className="font-bold text-foreground">calculadora solar</span>
+                    para gerar sua possibilidade de economia, e por fim um {" "}
+                    <span className="font-bold text-foreground">formulário </span>
+                    para verificarmos o quanto você aprendeu com nossa trilha!{" "}
+                  </p>
+                  <p> Mas calma, pensamos tudo para seja direto e rápido, com as informações mais relevantes para conscientização
+                    <span className="text-primary">😊</span>
                   </p>
 
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    Em seguida, você deverá preencher dois campos com{" "}
-                    <span className="font-bold text-foreground">
-                      informações da sua conta de energia
-                    </span>
-                    . Por fim, realizará o formulário novamente, permitindo a{" "}
-                    <span className="font-bold text-foreground">
-                      comparação dos resultados
-                    </span>{" "}
-                    antes e depois.
+                    Para o uso da calculadora é necessário saber o seu consumo mensal baseado na última fatura, ou preferencialmente na média das 3 últimas.
                   </p>
                 </div>
 
                 <div className="animate-text">
                   <p className="text-lg md:text-xl font-bold text-gradient-solar">
-                    ⏱️ Todo o processo levará menos de 5 minutos do seu tempo.
+                    ⏱️ Todo o processo leva aproximadamente entre 5 e 10 minutos do seu tempo, e nos ajuda muito a realizar esse projeto <span className="text-primary">🙌</span>
                   </p>
                 </div>
 
@@ -226,10 +225,10 @@ const Survey = () => {
                   {/* Q1 */}
                   <div className="animate-text">
                     <h3 className="text-base md:text-lg font-bold text-foreground mb-4">
-                      1. Para a sua residência, quanto você acha que gastaria com energia solar em um investimento inicial?
+                      1. Se fosse implantar na sua residência, qual é a expectativa de investimento inicial baseado no seu conhecimento atual?
                     </h3>
                     <div className="space-y-3">
-                      {["Até R$10.000", "De R$10.000 a R$20.000", "De R$20.000 a R$40.000", "Acima de R$40.000"].map((option, idx) => (
+                      {["Até R$10.000", "De R$10.000 a R$20.000", "De R$20.000 a R$30.000", "Acima de R$30.000", "Não tenho noção."].map((option, idx) => (
                         <label key={idx} className="flex items-center gap-3 cursor-pointer group">
                           <input
                             type="checkbox"
@@ -250,10 +249,10 @@ const Survey = () => {
                   {/* Q2 */}
                   <div className="animate-text">
                     <h3 className="text-base md:text-lg font-bold text-foreground mb-4">
-                      2. Em quantos anos você acha que o investimento em energia solar retornaria?
+                      2. Em quantos anos você imagina que o investimento em energia solar retornaria?
                     </h3>
                     <div className="space-y-3">
-                      {["Até 2 anos", "De 3 a 5 anos", "De 6 a 10 anos", "Mais de 10 anos"].map((option, idx) => (
+                      {["Até 2 anos", "De 3 a 5 anos", "De 6 a 10 anos", "Mais de 10 anos", "Não tenho noção."].map((option, idx) => (
                         <label key={idx} className="flex items-center gap-3 cursor-pointer group">
                           <input
                             type="checkbox"
