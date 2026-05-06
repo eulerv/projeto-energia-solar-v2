@@ -50,9 +50,10 @@ const TOTAL_PANELS = 3;
 const DAYS_PER_MONTH = 30;
 const SOLAR_IRRADIATION_RATE = 4.32;
 const SAFETY_MARGIN = 0.75;
-const AVERAGE_TARIFF_BRL_PER_KWH = 1;
+const AVERAGE_TARIFF_BRL_PER_KWH = 0.822;
 const GRID_EMISSION_KG_CO2_PER_KWH = 0.0289;
 const KG_CO2_PER_TREE_PER_YEAR = 60;
+const SYSTEM_LIFETIME_YEARS = 25;
 
 const PRICE_TABLE = [
   { maxKwp: 2.99, pricePerKwp: 4600 },
@@ -97,14 +98,17 @@ const Index = () => {
     const annualSavings = consumption * AVERAGE_TARIFF_BRL_PER_KWH * 12;
     const paybackYears = systemCost / annualSavings;
     const avoidedCo2KgPerYear = consumption * 12 * GRID_EMISSION_KG_CO2_PER_KWH;
-    const preservedTrees = avoidedCo2KgPerYear / KG_CO2_PER_TREE_PER_YEAR;
+    const avoidedCo2KgLifetime = avoidedCo2KgPerYear * SYSTEM_LIFETIME_YEARS;
+    const preservedTreesLifetime =
+      avoidedCo2KgLifetime / KG_CO2_PER_TREE_PER_YEAR;
 
     return {
       annualSavings,
+      avoidedCo2KgLifetime,
       avoidedCo2KgPerYear,
       kwp,
       paybackYears,
-      preservedTrees,
+      preservedTreesLifetime,
       pricePerKwp,
       systemCost,
     };
@@ -336,6 +340,10 @@ const Index = () => {
                     A partir do seu consumo mensal em kWh, estimaremos o tamanho do sistema, o
                     investimento, o retorno e o impacto ambiental.
                   </p>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Estimativa baseada em tarifa residencial CEEE-D/RS de R$ 0,82/kWh, sem bandeiras
+                    tarifárias e outros ajustes da conta.
+                  </p>
                 </div>
 
                 <div className="bg-background border border-border p-4 md:p-8 space-y-4 md:space-y-5">
@@ -389,15 +397,15 @@ const Index = () => {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
                         <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
-                          <p className="text-xs text-muted-foreground">CO₂ evitado por ano</p>
+                          <p className="text-xs text-muted-foreground">CO₂ evitado em 25 anos</p>
                           <p className="text-base md:text-lg font-bold text-foreground mt-1">
-                            {numberFormatter.format(calculatorResult.avoidedCo2KgPerYear)} kg
+                            {numberFormatter.format(calculatorResult.avoidedCo2KgLifetime)} kg
                           </p>
                         </div>
                         <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
                           <p className="text-xs text-muted-foreground">Árvores equivalentes</p>
                           <p className="text-base md:text-lg font-bold text-foreground mt-1">
-                            {numberFormatter.format(calculatorResult.preservedTrees)} por ano
+                            {numberFormatter.format(calculatorResult.preservedTreesLifetime)}
                           </p>
                         </div>
                       </div>
@@ -405,6 +413,8 @@ const Index = () => {
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         Preço aplicado: {currencyFormatter.format(calculatorResult.pricePerKwp)}/kWp.
                         Economia anual estimada: {currencyFormatter.format(calculatorResult.annualSavings)}.
+                        Árvores calculadas como equivalência de absorção de CO₂, não como árvores
+                        literalmente deixadas de derrubar.
                       </p>
                     </div>
                   ) : hasCalculated ? (
