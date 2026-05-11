@@ -7,6 +7,10 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  const resetHomeCarousel = () => {
+    window.dispatchEvent(new Event("reset-home-carousel"));
+  };
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
@@ -22,7 +26,7 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
+        <Link to="/" className="flex items-center gap-2 group" onClick={resetHomeCarousel}>
           <Sun className="w-7 h-7 text-primary transition-transform duration-500 group-hover:rotate-180" />
           <span className="text-lg font-bold text-foreground tracking-tight">
             Use + Energia Solar
@@ -34,6 +38,7 @@ const Navbar = () => {
           <Link
             to="/"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300"
+            onClick={resetHomeCarousel}
           >
             Home
           </Link>
@@ -65,7 +70,10 @@ const Navbar = () => {
               <Link
                 to="/"
                 className="text-lg text-muted-foreground hover:text-foreground transition-colors duration-300"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  resetHomeCarousel();
+                  setIsOpen(false);
+                }}
               >
                 Home
               </Link>

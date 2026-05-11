@@ -32,7 +32,7 @@ const emptyFormData: FormData = {
   q6: "",
 };
 
-const formQuestions = [
+const preFormQuestions = [
   {
     name: "q1",
     title:
@@ -63,6 +63,39 @@ const formQuestions = [
     name: "q6",
     title: "6. O que você considera ser a maior dificuldade para investir em energia solar?",
     options: ["Alto custo inicial", "Falta de acesso a informação", "Burocracia, seja com legislação ou em financiamento", "Espaço no imóvel(área de telhado)", "Não sei dizer"],
+  },
+] as const;
+
+const postFormQuestions = [
+  {
+    name: "q1",
+    title: "1. Um sistema residencial médio de energia solar pode evitar quantos metros cúbicos (m³) de CO₂ por mês?",
+    options: ["50 m³ por mês", "100 m³ por mês", "178 m³ por mês", "250 m³ por mês", "Não tenho noção."],
+  },
+  {
+    name: "q2",
+    title: "2. De acordo com o conteúdo, qual a porcentagem de fontes renováveis na matriz elétrica brasileira em 2024?",
+    options: ["50%", "70%", "88%", "95%", "Não tenho noção."],
+  },
+  {
+    name: "q3",
+    title: "3. Até quanto a conta de luz pode ser reduzida com a instalação de energia solar?",
+    options: ["Até 50%", "Até 70%", "Até 95%", "100% (zerar a conta)", "Não tenho noção."],
+  },
+  {
+    name: "q4",
+    title: "4. Quantos milhões de brasileiros vivem sem acesso à rede elétrica, segundo o conteúdo?",
+    options: ["1 milhão", "2 milhões", "5 milhões", "10 milhões", "Não tenho noção."],
+  },
+  {
+    name: "q5",
+    title: "5. Quantos empregos o setor solar já gerou no mundo (aproximadamente)?",
+    options: ["500 mil", "1 milhão", "1,5 milhão", "2 milhões", "Não tenho noção."],
+  },
+  {
+    name: "q6",
+    title: "6. A cada 100 kWh gerados por energia solar, quantos litros de água deixam de ser utilizados na geração convencional?",
+    options: ["2 litros", "5 litros", "8 litros", "12 litros", "Não tenho noção."],
   },
 ] as const;
 
@@ -317,7 +350,7 @@ const Survey = () => {
             )}
 
             <div className="space-y-8 border-t border-border pt-8">
-              {formQuestions.map((question) => (
+              {(form === "pre" ? preFormQuestions : postFormQuestions).map((question) => (
                 <div className="animate-text" key={question.name}>
                   <h3 className="text-base md:text-lg font-bold text-foreground mb-4">
                     {question.title}
@@ -762,9 +795,9 @@ const Survey = () => {
 
                 <div className="animate-text">
                   <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                    Por favor, tenha uma
-                    <span className="font-bold text-foreground"> conta de energia em mãos</span> para
-                    ter uma melhor experiência.
+                    Este é um projeto de alunos de graduação da universidade feevale para divulgar e
+                    informar a comunidade sobre a energia solar! Para continuar, será apenas necessário
+                    saber seu consumo mensal ou a média dos últimos 3 meses.
                   </p>
                 </div>
 

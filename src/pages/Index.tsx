@@ -2,13 +2,20 @@ import solarFamily from "@/assets/solar-family.avif";
 import solarHands from "@/assets/solar-hands.jpg";
 import solarHero from "@/assets/solar-hero.jpg";
 import solarInstall from "@/assets/solar-install.jpg";
+import solarNature from "@/assets/solar-nature.jpg";
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Battery, Calculator, DollarSign, Leaf, Sun, TrendingDown, Zap } from "lucide-react";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Battery, Calculator, DollarSign, Leaf, Pause, Play, Sun, TrendingDown, Zap } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -66,6 +73,60 @@ const PRICE_TABLE = [
   { maxKwp: 50, pricePerKwp: 2200 },
 ];
 
+const HERO_SLIDES = [
+  {
+    eyebrow: "Use + Energia Solar",
+    title: (
+      <>
+        Energia solar não é mais o futuro.{" "}
+        <span className="text-gradient-solar">Ela é o presente.</span>
+      </>
+    ),
+    content:
+      "Descubra como a energia solar está transformando vidas, reduzindo custos e protegendo o planeta.",
+    image: solarHero,
+    imageAlt: "Campo de painéis solares ao pôr do sol",
+    accent: "primary" as const,
+    mask: {
+      top: 0.98,
+      middle: 0.94,
+      overlay: 0.55,
+    },
+  },
+  {
+    eyebrow: "Simule seu potencial",
+    title: <>Pesquisa + Simulação de Economia</>,
+    content:
+      "Faça uma simulação, informe-se sobre a tecnologia e receba o seu potencial de economia, tudo em um lugar só ;)",
+    buttonLabel: "Responder pesquisa",
+    buttonTo: "/pesquisa",
+    image: solarInstall,
+    imageAlt: "Instalação de painéis solares em um telhado",
+    accent: "orange" as const,
+    mask: {
+      top: 0.98,
+      middle: 0.92,
+      overlay: 0.45,
+    },
+  },
+  {
+    eyebrow: "Projeto acadêmico",
+    title: <>Este é um projeto para informar e difundir a energia solar ☀️</>,
+    content:
+      "Somos alunos de engenharia da Universidade Feevale e este é nosso projeto para contribuir com a sociedade durante a graduação, em parceria com a empresa Orizon Energia Solar.",
+    buttonLabel: "Saiba mais",
+    buttonTo: "/sobre",
+    image: solarNature,
+    imageAlt: "Painéis solares recebendo luz do sol ao entardecer",
+    accent: "green" as const,
+    mask: {
+      top: 0.98,
+      middle: 0.92,
+      overlay: 0.5,
+    },
+  },
+];
+
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -75,6 +136,177 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 const numberFormatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 1,
 });
+
+const HeroCarousel = () => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (!api) return;
+
+    const updateCurrentSlide = () => setCurrentSlide(api.selectedScrollSnap());
+    const resetCarousel = () => api.scrollTo(0, true);
+
+    api.scrollTo(0, true);
+    updateCurrentSlide();
+    api.on("select", updateCurrentSlide);
+    api.on("reInit", updateCurrentSlide);
+    window.addEventListener("reset-home-carousel", resetCarousel);
+
+    return () => {
+      api.off("select", updateCurrentSlide);
+      api.off("reInit", updateCurrentSlide);
+      window.removeEventListener("reset-home-carousel", resetCarousel);
+    };
+  }, [api]);
+
+  useEffect(() => {
+    if (!api || isPaused) return;
+
+    const autoplay = window.setInterval(() => {
+      api.scrollNext();
+    }, 6000);
+
+    return () => {
+      window.clearInterval(autoplay);
+    };
+  }, [api, isPaused]);
+
+  const handleSurveyClick = (path: string) => {
+    if (path === "/pesquisa") {
+      window.dispatchEvent(new Event("reset-survey"));
+    }
+  };
+
+  return (
+    <section id="home" className="relative flex min-h-[100vh] overflow-hidden">
+      <Carousel
+        setApi={setApi}
+        opts={{ align: "start", loop: true }}
+        className="min-h-[100vh] w-full"
+        aria-label="Destaques sobre energia solar"
+      >
+        <CarouselContent className="ml-0">
+          {HERO_SLIDES.map((slide, index) => {
+            const isOrange = slide.accent === "orange";
+            const isGreen = slide.accent === "green";
+            const cardClass = isGreen
+              ? "bg-[hsl(var(--solar-green))]/14 border-[hsl(var(--solar-green))]/35"
+              : isOrange
+                ? "bg-[hsl(var(--solar-orange))]/25 border-[hsl(var(--solar-orange))]/45"
+                : "bg-primary/10 border-primary/20";
+            const buttonClass = isGreen
+              ? "bg-[hsl(var(--solar-green))] text-accent-foreground hover:bg-primary"
+              : isOrange
+                ? "bg-[hsl(var(--solar-orange))] text-primary-foreground hover:bg-primary"
+                : "bg-primary text-primary-foreground hover:bg-[hsl(var(--solar-orange))]";
+
+            return (
+              <CarouselItem key={slide.eyebrow} className="pl-0 basis-full">
+                <div className="relative flex min-h-[100vh] items-center justify-center px-4 py-24 md:px-6">
+                  <div className="absolute inset-0">
+                    <img
+                      src={slide.image}
+                      alt={slide.imageAlt}
+                      className="h-full w-full object-cover"
+                      width={1920}
+                      height={1080}
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(to bottom, hsl(var(--background) / ${slide.mask.top}), hsl(var(--background) / ${slide.mask.middle}), hsl(var(--background)))`,
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 bg-background"
+                      style={{ opacity: slide.mask.overlay }}
+                    />
+                  </div>
+
+                  <div className="relative z-10 mx-auto w-full max-w-[1400px] px-2 md:px-6 text-center">
+                    <ScrollCard>
+                      <div
+                        className={`chamfer-card mx-auto max-w-5xl border p-8 backdrop-blur-sm md:p-16 lg:p-20 ${cardClass}`}
+                      >
+                        <p className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-primary">
+                          {slide.eyebrow}
+                        </p>
+                        <h1 className="mb-8 text-3xl font-black leading-[1.05] text-foreground sm:text-4xl md:text-6xl lg:text-7xl">
+                          {slide.title}
+                        </h1>
+                        <p className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                          {slide.content}
+                        </p>
+                        {"buttonTo" in slide ? (
+                          <Link
+                            to={slide.buttonTo}
+                            onClick={() => handleSurveyClick(slide.buttonTo)}
+                            className={`mt-8 inline-flex items-center justify-center chamfer-card-sm px-6 py-3 text-sm font-bold transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/40 md:px-8 md:py-4 md:text-lg ${buttonClass}`}
+                          >
+                            {slide.buttonLabel}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        ) : null}
+                      </div>
+                    </ScrollCard>
+                  </div>
+                </div>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+
+        <button
+          type="button"
+          onClick={() => api?.scrollPrev()}
+          className="absolute left-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-primary/25 bg-background/85 text-foreground backdrop-blur-md transition-colors hover:bg-primary hover:text-primary-foreground md:flex"
+          aria-label="Slide anterior"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => api?.scrollNext()}
+          className="absolute right-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-primary/25 bg-background/85 text-foreground backdrop-blur-md transition-colors hover:bg-primary hover:text-primary-foreground md:flex"
+          aria-label="Próximo slide"
+        >
+          <ArrowRight className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsPaused((paused) => !paused)}
+          className="absolute bottom-20 right-4 z-20 flex h-10 w-10 items-center justify-center border border-primary/25 bg-background/85 text-foreground backdrop-blur-md transition-colors hover:bg-primary hover:text-primary-foreground md:bottom-8 md:right-8"
+          aria-label={isPaused ? "Continuar slides" : "Pausar slides"}
+          aria-pressed={isPaused}
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
+
+        <div className="absolute bottom-8 left-1/2 z-20 flex w-[min(560px,calc(100%-2rem))] -translate-x-1/2 gap-2">
+          {HERO_SLIDES.map((slide, index) => (
+            <button
+              key={slide.eyebrow}
+              type="button"
+              onClick={() => api?.scrollTo(index)}
+              className="group h-3 flex-1 overflow-hidden border border-primary/25 bg-background/85"
+              aria-label={`Ir para o slide ${index + 1}`}
+              aria-current={currentSlide === index}
+            >
+              <span
+                className={`block h-full transition-all duration-300 ${
+                  currentSlide === index ? "w-full bg-primary" : "w-0 bg-primary/70 group-hover:w-full"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </Carousel>
+    </section>
+  );
+};
 
 const getPricePerKwp = (kwp: number) =>
   PRICE_TABLE.find((item) => kwp <= item.maxKwp)?.pricePerKwp ?? 2000;
@@ -160,37 +392,8 @@ const Index = () => {
       <Navbar />
       <ScrollToTop />
 
-      {/* Hero Section */}
-      <section id="home" className="section-full relative flex items-center justify-center">
-        <div className="absolute inset-0">
-          <img
-            src={solarHero}
-            alt="Campo de painéis solares ao pôr do sol"
-            className="w-full h-full object-cover"
-            width={1920}
-            height={1080}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 text-center">
-          <ScrollCard>
-            <div className="chamfer-card bg-primary/10 backdrop-blur-sm border border-primary/20 p-10 md:p-16 lg:p-20 max-w-5xl mx-auto">
-              <p className="text-sm uppercase tracking-[0.3em] text-primary mb-6 font-medium">
-                Use + Energia Solar
-              </p>
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-foreground leading-[1.05] mb-8">
-                Energia solar não é mais o futuro.{" "}
-                <span className="text-gradient-solar">Ela é o presente.</span>
-              </h1>
-              <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
-                Descubra como a energia solar está transformando vidas, reduzindo custos e
-                protegendo o planeta.
-              </p>
-            </div>
-          </ScrollCard>
-        </div>
-      </section>
+      {/* Hero Carousel */}
+      <HeroCarousel />
 
       {/* ── Horizontal Scroll Section (Desktop) / Vertical (Mobile) ── */}
       <div ref={wrapperRef} className="horizontal-wrapper">
