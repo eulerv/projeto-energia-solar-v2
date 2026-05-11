@@ -88,9 +88,9 @@ const HERO_SLIDES = [
     imageAlt: "Campo de painéis solares ao pôr do sol",
     accent: "primary" as const,
     mask: {
-      top: 0.98,
-      middle: 0.94,
-      overlay: 0.55,
+      top: 0.6,
+      middle: 0.4,
+      overlay: 0.0,
     },
   },
   {
@@ -104,9 +104,9 @@ const HERO_SLIDES = [
     imageAlt: "Instalação de painéis solares em um telhado",
     accent: "orange" as const,
     mask: {
-      top: 0.98,
-      middle: 0.92,
-      overlay: 0.45,
+      top: 0.6,
+      middle: 0.4,
+      overlay: 0.0,
     },
   },
   {
@@ -120,9 +120,9 @@ const HERO_SLIDES = [
     imageAlt: "Painéis solares recebendo luz do sol ao entardecer",
     accent: "green" as const,
     mask: {
-      top: 0.98,
-      middle: 0.92,
-      overlay: 0.5,
+      top: 0.6,
+      middle: 0.4,
+      overlay: 0.0,
     },
   },
 ];
