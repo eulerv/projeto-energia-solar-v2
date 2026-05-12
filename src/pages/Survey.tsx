@@ -2,16 +2,26 @@ import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useMask } from "@/hooks/useMask";
 import gsap from "gsap";
-import { Calculator, ChevronLeft, ChevronRight, DollarSign, Leaf, Zap } from "lucide-react";
+import { BarChart3, Calculator, ChevronLeft, ChevronRight, DollarSign, Leaf, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-type SurveyStep = "intro" | "form1" | "content1" | "content2" | "form2" | "calculator" | "finished";
+type SurveyStep =
+  | "intro"
+  | "form1"
+  | "process"
+  | "calculator"
+  | "content1"
+  | "content2"
+  | "form2"
+  | "finished";
 
 interface FormData {
   name: string;
   residents: string;
   email: string;
+  city: string;
+  income: string;
   q1: string;
   q2: string;
   q3: string;
@@ -24,6 +34,8 @@ const emptyFormData: FormData = {
   name: "",
   residents: "",
   email: "",
+  city: "",
+  income: "",
   q1: "",
   q2: "",
   q3: "",
@@ -37,7 +49,7 @@ const preFormQuestions = [
     name: "q1",
     title:
       "1. Se fosse implantar na sua residência, qual é a expectativa de investimento inicial baseado no seu conhecimento atual?",
-    options: ["Até R$10.000", "De R$10.000 a R$20.000", "De R$20.000 a R$30.000", "Acima de R$30.000", "Não tenho noção."],
+    options: ["De R$10.000 a R$15.000", "De R$15.000 a R$20.000", "De R$20.000 a R$30.000", "Acima de R$30.000", "Não tenho noção."],
   },
   {
     name: "q2",
@@ -62,7 +74,7 @@ const preFormQuestions = [
   {
     name: "q6",
     title: "6. O que você considera ser a maior dificuldade para investir em energia solar?",
-    options: ["Alto custo inicial", "Falta de acesso a informação", "Burocracia, seja com legislação ou em financiamento", "Espaço no imóvel(área de telhado)", "Não sei dizer"],
+    options: ["Alto custo inicial", "Falta de acesso a informação", "Burocracia, com legislação ou em financiamento", "Espaço no imóvel(área de telhado)", "Não sei dizer"],
   },
 ] as const;
 
@@ -99,7 +111,38 @@ const postFormQuestions = [
   },
 ] as const;
 
-const stepOrder: SurveyStep[] = ["intro", "form1", "content1", "content2", "form2", "calculator", "finished"];
+const stepOrder: SurveyStep[] = [
+  "intro",
+  "form1",
+  "process",
+  "calculator",
+  "content1",
+  "content2",
+  "form2",
+  "finished",
+];
+
+const stepLabels: Record<SurveyStep, string> = {
+  intro: "Início",
+  form1: "Formulário 1",
+  process: "Como funciona",
+  calculator: "Calculadora",
+  content1: "Conteúdo 1",
+  content2: "Conteúdo 2",
+  form2: "Formulário 2",
+  finished: "Resultado",
+};
+
+const GOOGLE_FORM_EMBED_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSeaGEmRIk_WFkJ0Mg00K3-pJlpEkgisbJDXJoAsSAtcH-I46w/viewform?embedded=true";
+
+const incomeOptions = [
+  "Menos de 1 salário mínimo",
+  "De 1 a 2 salários mínimos",
+  "De 3 a 5 salários mínimos",
+  "De 5 a 8 salários mínimos",
+  "Mais que 8 salários mínimos",
+] as const;
 const DAYS_PER_MONTH = 30;
 const SOLAR_IRRADIATION_RATE = 4.32;
 const SAFETY_MARGIN = 0.75;
@@ -138,6 +181,29 @@ const isFormComplete = (data: FormData, includeIdentityFields = true) => {
     : [data.q1, data.q2, data.q3, data.q4, data.q5, data.q6];
 
   return values.every((value) => value.trim().length > 0);
+};
+
+const getStepError = (
+  currentData: FormData,
+  postData: FormData,
+  hasCalculatorResult: boolean,
+  targetStep: SurveyStep,
+) => {
+  const targetIndex = stepOrder.indexOf(targetStep);
+
+  if (targetIndex > stepOrder.indexOf("form1") && !isFormComplete(currentData)) {
+    return "Preencha o formulário 1 antes de avançar.";
+  }
+
+  if (targetIndex > stepOrder.indexOf("calculator") && !hasCalculatorResult) {
+    return "Calcule seu potencial solar antes de avançar.";
+  }
+
+  if (targetIndex > stepOrder.indexOf("form2") && !isFormComplete(postData, false)) {
+    return "Preencha o formulário 2 antes de finalizar.";
+  }
+
+  return "";
 };
 
 const Survey = () => {
@@ -216,36 +282,47 @@ const Survey = () => {
     );
   }, [step]);
 
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }, [step]);
+
   const goToStep = (targetStep: SurveyStep) => {
     setErrorMessage("");
     setStep(targetStep);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const requestStepChange = (targetStep: SurveyStep) => {
+    const targetIndex = stepOrder.indexOf(targetStep);
+    const currentIndex = stepOrder.indexOf(step);
+    const error = targetIndex > currentIndex
+      ? getStepError(formData, postFormData, Boolean(calculatorResult), targetStep)
+      : "";
+
+    if (error) {
+      if (targetIndex > stepOrder.indexOf("calculator") && !calculatorResult) {
+        setHasCalculated(true);
+      }
+
+      setErrorMessage(error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    goToStep(targetStep);
   };
 
   const handleBack = () => {
     const currentIndex = stepOrder.indexOf(step);
-    goToStep(stepOrder[Math.max(currentIndex - 1, 0)]);
+    requestStepChange(stepOrder[Math.max(currentIndex - 1, 0)]);
   };
 
   const handleNext = () => {
-    if (step === "form1" && !isFormComplete(formData)) {
-      setErrorMessage("Preencha o formulário 1 antes de avançar.");
-      return;
-    }
-
-    if (step === "form2" && !isFormComplete(postFormData, false)) {
-      setErrorMessage("Preencha o formulário 2 antes de finalizar.");
-      return;
-    }
-
-    if (step === "calculator" && !calculatorResult) {
-      setHasCalculated(true);
-      setErrorMessage("Calcule seu potencial solar antes de avançar.");
-      return;
-    }
-
     const currentIndex = stepOrder.indexOf(step);
-    goToStep(stepOrder[Math.min(currentIndex + 1, stepOrder.length - 1)]);
+    requestStepChange(stepOrder[Math.min(currentIndex + 1, stepOrder.length - 1)]);
   };
 
   const handleCalculate = (event: React.FormEvent<HTMLFormElement>) => {
@@ -255,7 +332,8 @@ const Survey = () => {
   };
 
   const handleFormChange =
-    (form: "pre" | "post") => (event: React.ChangeEvent<HTMLInputElement>) => {
+    (form: "pre" | "post") =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value, type, checked } = event.target;
       const finalValue = name === "residents" ? numberMask(value) : value;
       const setter = form === "pre" ? setFormData : setPostFormData;
@@ -266,25 +344,78 @@ const Survey = () => {
       }));
     };
 
+  const renderStepProgress = () => {
+    const currentIndex = stepOrder.indexOf(step);
+
+    return (
+      <div className="animate-text pt-6">
+        <div className="flex items-center gap-2" aria-label="Navegação da pesquisa">
+          {stepOrder.map((item, index) => {
+            const isActive = item === step;
+            const isPast = index < currentIndex;
+
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => requestStepChange(item)}
+                className={`group flex min-w-0 flex-1 flex-col items-center gap-2 ${
+                  index === 0 ? "" : ""
+                }`}
+                aria-label={`Ir para ${stepLabels[item]}`}
+                aria-current={isActive ? "step" : undefined}
+              >
+                <span
+                  className={`h-2 w-full transition-colors duration-300 ${
+                    isActive || isPast
+                      ? "bg-primary"
+                      : "bg-muted group-hover:bg-primary/50"
+                  }`}
+                />
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-black transition-colors duration-300 ${
+                    isActive
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : isPast
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-border bg-background text-muted-foreground group-hover:border-primary/60 group-hover:text-foreground"
+                  }`}
+                >
+                  {index + 1}
+                </span>
+                <span className="hidden text-center text-[11px] font-semibold text-muted-foreground md:block">
+                  {stepLabels[item]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderNavButtons = (nextLabel = "Avançar") => (
-    <div className="animate-text pt-8 border-t border-border flex flex-col sm:flex-row gap-3 sm:justify-between">
-      <button
-        type="button"
-        onClick={handleBack}
-        className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-muted text-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center justify-center gap-3"
-      >
-        <ChevronLeft className="w-5 h-5 relative z-10" />
-        <span className="relative z-10">Voltar</span>
-      </button>
-      <button
-        type="button"
-        onClick={handleNext}
-        className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center justify-center gap-3"
-      >
-        <span className="relative z-10">{nextLabel}</span>
-        <ChevronRight className="w-5 h-5 relative z-10" />
-        <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
-      </button>
+    <div className="pt-8 border-t border-border">
+      <div className="animate-text flex flex-col sm:flex-row gap-3 sm:justify-between">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-muted text-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center justify-center gap-3"
+        >
+          <ChevronLeft className="w-5 h-5 relative z-10" />
+          <span className="relative z-10">Voltar</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center justify-center gap-3"
+        >
+          <span className="relative z-10">{nextLabel}</span>
+          <ChevronRight className="w-5 h-5 relative z-10" />
+          <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
+        </button>
+      </div>
+      {renderStepProgress()}
     </div>
   );
 
@@ -346,6 +477,39 @@ const Survey = () => {
                     className="w-full px-4 py-3 md:py-4 bg-background border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   />
                 </div>
+
+                <div className="animate-text">
+                  <label className="block text-sm md:text-base font-bold text-foreground mb-3">
+                    Em qual cidade você mora?
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={data.city}
+                    onChange={handleFormChange(form)}
+                    placeholder="Ex.: Novo Hamburgo"
+                    className="w-full px-4 py-3 md:py-4 bg-background border border-border text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+
+                <div className="animate-text">
+                  <label className="block text-sm md:text-base font-bold text-foreground mb-3">
+                    Qual é o perfil de renda total da sua casa?
+                  </label>
+                  <select
+                    name="income"
+                    value={data.income}
+                    onChange={handleFormChange(form)}
+                    className="w-full px-4 py-3 md:py-4 bg-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  >
+                    <option value="">Selecione uma faixa</option>
+                    {incomeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
@@ -376,6 +540,29 @@ const Survey = () => {
               ))}
             </div>
 
+            {form === "pre" && (
+              <div className="animate-text border-t border-border pt-8">
+                <div className="bg-background/70 border border-primary/25 p-5 md:p-6 space-y-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.25em] text-primary font-bold mb-2">
+                      TESTE FORMS
+                    </p>
+
+                  </div>
+                  <div className="overflow-hidden border border-border bg-background">
+                    <iframe
+                      src={GOOGLE_FORM_EMBED_URL}
+                      title="Formulário Google Forms da pesquisa Use + Energia Solar"
+                      className="h-[588px] w-full"
+                      loading="lazy"
+                    >
+                      Carregando…
+                    </iframe>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {errorMessage && (
               <p className="animate-text text-sm text-destructive font-semibold">
                 {errorMessage}
@@ -384,6 +571,87 @@ const Survey = () => {
 
             {renderNavButtons()}
           </form>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderProcessExplanation = () => (
+    <section className="min-h-screen flex items-center justify-center px-4 md:px-6 py-24">
+      <div className="max-w-4xl w-full mx-auto">
+        <div className="chamfer-card bg-secondary border border-border p-8 md:p-16 lg:p-20">
+          <div className="space-y-8">
+            <div className="animate-text space-y-4">
+              <p className="text-sm uppercase tracking-[0.25em] text-primary font-bold">
+                Próximas etapas
+              </p>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground leading-tight">
+                Agora a trilha fica mais prática
+              </h2>
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                Depois deste primeiro formulário, você vai acessar uma calculadora solar para estimar
+                seu potencial de economia. Em seguida, verá duas telas rápidas com cards informativos
+                sobre impacto ambiental, economia e acesso à energia. No fim, responderá o formulário 2
+                para compararmos o conhecimento antes e depois da experiência.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="animate-text bg-background/70 border border-border p-5">
+                <Calculator className="w-8 h-8 text-primary mb-4" />
+                <h3 className="text-lg font-black text-foreground mb-2">1. Calculadora</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Informe o consumo mensal em kWh para receber estimativas de sistema, economia e retorno.
+                </p>
+              </div>
+              <div className="animate-text bg-background/70 border border-border p-5">
+                <Leaf className="w-8 h-8 text-[hsl(var(--solar-green))] mb-4" />
+                <h3 className="text-lg font-black text-foreground mb-2">2. Conteúdo</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Leia dois blocos curtos com dados que ajudam a interpretar os resultados da pesquisa.
+                </p>
+              </div>
+              <div className="animate-text bg-background/70 border border-border p-5">
+                <BarChart3 className="w-8 h-8 text-primary mb-4" />
+                <h3 className="text-lg font-black text-foreground mb-2">3. Comparação</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  O formulário final mostra se a trilha mudou a percepção sobre energia solar.
+                </p>
+              </div>
+            </div>
+
+            <div className="animate-text bg-primary/10 border border-primary/25 p-5 md:p-6">
+              <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
+                Como os resultados podem aparecer
+              </h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
+                Para esta versão, o Google Forms é suficiente para guardar respostas, ver resumos por
+                pergunta e exportar tudo para o Google Sheets. As perguntas de alternativas viram gráficos
+                de pizza ou barras no resumo do Forms; cidade, moradores e renda entram como dados de
+                segmentação para cruzar na planilha.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-muted-foreground">
+                <div className="bg-background/70 border border-border p-4">
+                  <span className="font-bold text-foreground">Perfil:</span> cidade/região, renda familiar e
+                  quantidade de pessoas na residência.
+                </div>
+                <div className="bg-background/70 border border-border p-4">
+                  <span className="font-bold text-foreground">Percepção:</span> expectativas de custo,
+                  payback, economia e barreiras percebidas.
+                </div>
+                <div className="bg-background/70 border border-border p-4">
+                  <span className="font-bold text-foreground">Aprendizado:</span> comparação entre respostas
+                  antes e depois das telas informativas.
+                </div>
+                <div className="bg-background/70 border border-border p-4">
+                  <span className="font-bold text-foreground">Simulação:</span> consumo informado, economia,
+                  sistema estimado e impacto ambiental calculado no site.
+                </div>
+              </div>
+            </div>
+
+            {renderNavButtons("Ir para calculadora")}
+          </div>
         </div>
       </div>
     </section>
@@ -835,6 +1103,8 @@ const Survey = () => {
                     <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
                   </button>
                 </div>
+
+                {renderStepProgress()}
               </div>
             </div>
           </div>
@@ -842,10 +1112,11 @@ const Survey = () => {
       )}
 
       {step === "form1" && renderForm("FORMULÁRIO 1 - PRÉ-ESTUDO", formData, "pre")}
+      {step === "process" && renderProcessExplanation()}
+      {step === "calculator" && renderSolarCalculator()}
       {step === "content1" && renderEnvironmentalContent()}
       {step === "content2" && renderEnvironmentalContent2()}
       {step === "form2" && renderForm("FORMULÁRIO 2 - PÓS-ESTUDO", postFormData, "post")}
-      {step === "calculator" && renderSolarCalculator()}
 
       {step === "finished" && (
         <section className="relative min-h-screen flex items-center justify-center px-4 md:px-6 py-24 overflow-hidden">
@@ -929,7 +1200,13 @@ const Survey = () => {
                   </div>
                 )}
 
-                <div className="animate-text pt-4">
+                <div className="animate-text flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                  <button
+                    type="button"
+                    className="relative text-base md:text-lg font-bold px-8 md:px-10 py-4 md:py-5 bg-[hsl(var(--solar-green))] text-accent-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center gap-3 cursor-pointer"
+                  >
+                    <span className="relative z-10">Solicitar contato com a empresa Orizon</span>
+                  </button>
                   <button
                     onClick={() => navigate("/")}
                     className="relative text-base md:text-lg font-bold px-8 md:px-10 py-4 md:py-5 bg-primary text-primary-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center gap-3 cursor-pointer"
@@ -939,6 +1216,8 @@ const Survey = () => {
                     <span className="absolute inset-0 bg-[hsl(var(--solar-orange))] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 ease-out" />
                   </button>
                 </div>
+
+                {renderStepProgress()}
               </div>
             </div>
           </div>
