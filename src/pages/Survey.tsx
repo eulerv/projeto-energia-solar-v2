@@ -49,7 +49,7 @@ const preFormQuestions = [
     name: "q1",
     title:
       "1. Se fosse implantar na sua residência, qual é a expectativa de investimento inicial baseado no seu conhecimento atual?",
-    options: ["De R$10.000 a R$15.000", "De R$15.000 a R$20.000", "De R$20.000 a R$30.000", "Acima de R$30.000", "Não tenho noção."],
+    options: ["Até R$10.000", "De R$10.000 a R$20.000", "De R$20.000 a R$30.000", "Acima de R$30.000", "Não tenho noção."],
   },
   {
     name: "q2",
@@ -74,7 +74,7 @@ const preFormQuestions = [
   {
     name: "q6",
     title: "6. O que você considera ser a maior dificuldade para investir em energia solar?",
-    options: ["Alto custo inicial", "Falta de acesso a informação", "Burocracia, com legislação ou em financiamento", "Espaço no imóvel(área de telhado)", "Não sei dizer"],
+    options: ["Alto custo inicial", "Falta de acesso a informação", "Burocracia, seja com legislação ou em financiamento", "Espaço no imóvel(área de telhado)", "Não sei dizer"],
   },
 ] as const;
 
@@ -133,8 +133,22 @@ const stepLabels: Record<SurveyStep, string> = {
   finished: "Resultado",
 };
 
-const GOOGLE_FORM_EMBED_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSeaGEmRIk_WFkJ0Mg00K3-pJlpEkgisbJDXJoAsSAtcH-I46w/viewform?embedded=true";
+const GOOGLE_FORM_ACTION_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSeaGEmRIk_WFkJ0Mg00K3-pJlpEkgisbJDXJoAsSAtcH-I46w/formResponse";
+
+const googleFormEntries = {
+  name: "entry.1900898901",
+  residents: "entry.914662028",
+  email: "entry.759267602",
+  city: "entry.1931650814",
+  income: "entry.759899092",
+  q1: "entry.27851652",
+  q2: "entry.1267231955",
+  q3: "entry.1924706705",
+  q4: "entry.976539929",
+  q5: "entry.1505788005",
+  q6: "entry.381937918",
+} satisfies Record<keyof FormData, string>;
 
 const incomeOptions = [
   "Menos de 1 salário mínimo",
@@ -206,6 +220,20 @@ const getStepError = (
   return "";
 };
 
+const buildGoogleFormPayload = (data: FormData) => {
+  const payload = new URLSearchParams();
+
+  Object.entries(googleFormEntries).forEach(([field, entryId]) => {
+    const value = data[field as keyof FormData];
+
+    if (value.trim()) {
+      payload.append(entryId, value);
+    }
+  });
+
+  return payload;
+};
+
 const Survey = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -216,6 +244,8 @@ const Survey = () => {
   const [monthlyConsumption, setMonthlyConsumption] = useState("");
   const [hasCalculated, setHasCalculated] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmittingGoogleForm, setIsSubmittingGoogleForm] = useState(false);
+  const [googleFormSubmitted, setGoogleFormSubmitted] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const calculatorResult = useMemo(() => {
@@ -258,6 +288,7 @@ const Survey = () => {
     const resetSurvey = () => {
       setStep("intro");
       setErrorMessage("");
+      setGoogleFormSubmitted(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -295,7 +326,7 @@ const Survey = () => {
     setStep(targetStep);
   };
 
-  const requestStepChange = (targetStep: SurveyStep) => {
+  const requestStepChange = async (targetStep: SurveyStep) => {
     const targetIndex = stepOrder.indexOf(targetStep);
     const currentIndex = stepOrder.indexOf(step);
     const error = targetIndex > currentIndex
@@ -312,6 +343,14 @@ const Survey = () => {
       return;
     }
 
+    if (step === "form1" && targetIndex > currentIndex && !googleFormSubmitted) {
+      const submitted = await submitGoogleForm();
+
+      if (!submitted) {
+        return;
+      }
+    }
+
     goToStep(targetStep);
   };
 
@@ -322,7 +361,8 @@ const Survey = () => {
 
   const handleNext = () => {
     const currentIndex = stepOrder.indexOf(step);
-    requestStepChange(stepOrder[Math.min(currentIndex + 1, stepOrder.length - 1)]);
+    const targetStep = stepOrder[Math.min(currentIndex + 1, stepOrder.length - 1)];
+    requestStepChange(targetStep);
   };
 
   const handleCalculate = (event: React.FormEvent<HTMLFormElement>) => {
@@ -331,16 +371,54 @@ const Survey = () => {
     setErrorMessage("");
   };
 
+  const submitGoogleForm = async () => {
+    const payload = buildGoogleFormPayload(formData);
+    const debugPayload = Object.fromEntries(payload.entries());
+
+    console.groupCollapsed("[Google Forms] Envio do formulário 1");
+    console.info("URL:", GOOGLE_FORM_ACTION_URL);
+    console.info("Payload por entry ID:", debugPayload);
+    console.info("Dados locais:", formData);
+    console.warn(
+      "O envio usa mode: no-cors. O navegador não permite ler a resposta do Google Forms; confirme o sucesso na aba Respostas do Forms.",
+    );
+    console.groupEnd();
+
+    setIsSubmittingGoogleForm(true);
+
+    try {
+      await fetch(GOOGLE_FORM_ACTION_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: payload,
+      });
+
+      setGoogleFormSubmitted(true);
+      console.info("[Google Forms] Requisição enviada. Verifique a planilha/respostas do Forms.");
+      return true;
+    } catch (error) {
+      console.error("[Google Forms] Falha ao enviar:", error);
+      setErrorMessage("Não foi possível enviar as respostas ao Google Forms. Veja o console para detalhes.");
+      return false;
+    } finally {
+      setIsSubmittingGoogleForm(false);
+    }
+  };
+
   const handleFormChange =
     (form: "pre" | "post") =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value, type, checked } = event.target;
+      const { name, value } = event.target;
+      const isCheckedInput = event.target instanceof HTMLInputElement && event.target.type === "checkbox";
       const finalValue = name === "residents" ? numberMask(value) : value;
       const setter = form === "pre" ? setFormData : setPostFormData;
 
       setter((prev) => ({
         ...prev,
-        [name]: type === "checkbox" ? (checked ? value : "") : finalValue,
+        [name]: isCheckedInput ? (event.target.checked ? value : "") : finalValue,
       }));
     };
 
@@ -540,36 +618,20 @@ const Survey = () => {
               ))}
             </div>
 
-            {form === "pre" && (
-              <div className="animate-text border-t border-border pt-8">
-                <div className="bg-background/70 border border-primary/25 p-5 md:p-6 space-y-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-primary font-bold mb-2">
-                      TESTE FORMS
-                    </p>
-
-                  </div>
-                  <div className="overflow-hidden border border-border bg-background">
-                    <iframe
-                      src={GOOGLE_FORM_EMBED_URL}
-                      title="Formulário Google Forms da pesquisa Use + Energia Solar"
-                      className="h-[588px] w-full"
-                      loading="lazy"
-                    >
-                      Carregando…
-                    </iframe>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {errorMessage && (
               <p className="animate-text text-sm text-destructive font-semibold">
                 {errorMessage}
               </p>
             )}
 
-            {renderNavButtons()}
+            {form === "pre" && (
+              <p className="animate-text text-xs md:text-sm text-muted-foreground leading-relaxed">
+                Ao avançar, suas respostas serão enviadas ao Google Forms em segundo plano. Abra o
+                console do navegador para ver os logs de integração por campo.
+              </p>
+            )}
+
+            {renderNavButtons(form === "pre" && isSubmittingGoogleForm ? "Enviando..." : "Avançar")}
           </form>
         </div>
       </div>
