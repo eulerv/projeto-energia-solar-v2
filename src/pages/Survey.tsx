@@ -82,32 +82,32 @@ const postFormQuestions = [
   {
     name: "q1",
     title: "1. Um sistema residencial médio de energia solar pode evitar quantos metros cúbicos (m³) de CO₂ por mês?",
-    options: ["50 m³ por mês", "100 m³ por mês", "178 m³ por mês", "250 m³ por mês", "Não tenho noção."],
+    options: ["50 m³ por mês", "100 m³ por mês", "178 m³ por mês", "250 m³ por mês"],
   },
   {
     name: "q2",
     title: "2. De acordo com o conteúdo, qual a porcentagem de fontes renováveis na matriz elétrica brasileira em 2024?",
-    options: ["50%", "70%", "88%", "95%", "Não tenho noção."],
+    options: ["50%", "70%", "88%", "99%"],
   },
   {
     name: "q3",
     title: "3. Até quanto a conta de luz pode ser reduzida com a instalação de energia solar?",
-    options: ["Até 50%", "Até 70%", "Até 95%", "100% (zerar a conta)", "Não tenho noção."],
+    options: ["Até 50%", "Até 70%", "Até 95%", "100% (zerar a conta)"],
   },
   {
     name: "q4",
-    title: "4. Quantos milhões de brasileiros vivem sem acesso à rede elétrica, segundo o conteúdo?",
-    options: ["1 milhão", "2 milhões", "5 milhões", "10 milhões", "Não tenho noção."],
-  },
-  {
-    name: "q5",
-    title: "5. Quantos empregos o setor solar já gerou no mundo (aproximadamente)?",
+    title: "4. Quantos empregos o setor solar já gerou no mundo (aproximadamente)?",
     options: ["500 mil", "1 milhão", "1,5 milhão", "2 milhões", "Não tenho noção."],
   },
   {
+    name: "q5",
+    title: "5. Após passar pela experiência, sabendo das informações apresentadas e do seu resultado na calculadora, você teve diria que teve um impacto no geral:",
+    options: ["Negativo", "Mediano mas insuficiente", "Mediano e suficiente", "Além das expectativas"],
+  },
+  {
     name: "q6",
-    title: "6. A cada 100 kWh gerados por energia solar, quantos litros de água deixam de ser utilizados na geração convencional?",
-    options: ["2 litros", "5 litros", "8 litros", "12 litros", "Não tenho noção."],
+    title: "6. Marque a frase que melhor define sua percepção no momento:",
+    options: ["Imaginei números superiores, não supriu minhas expectativas", "Achei o conteúdo interessante e explicativo, vou refletir", "Tenho boas chances de entrar em contato para solicitar orçamento"],
   },
 ] as const;
 
@@ -648,10 +648,10 @@ const Survey = () => {
                 Próximas etapas
               </p>
               <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground leading-tight">
-                Agora a trilha fica mais prática
+                Sobre a trilha
               </h2>
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                Depois deste primeiro formulário, você vai acessar uma calculadora solar para estimar
+                Agora que passou pelo primeiro formulário, você vai acessar uma calculadora solar para estimar
                 seu potencial de economia. Em seguida, verá duas telas rápidas com cards informativos
                 sobre impacto ambiental, economia e acesso à energia. No fim, responderá o formulário 2
                 para compararmos o conhecimento antes e depois da experiência.
@@ -684,31 +684,23 @@ const Survey = () => {
 
             <div className="animate-text bg-primary/10 border border-primary/25 p-5 md:p-6">
               <h3 className="text-lg md:text-xl font-black text-foreground mb-3">
-                Como os resultados podem aparecer
+                O que esperar da experiência
               </h3>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-                Para esta versão, o Google Forms é suficiente para guardar respostas, ver resumos por
-                pergunta e exportar tudo para o Google Sheets. As perguntas de alternativas viram gráficos
-                de pizza ou barras no resumo do Forms; cidade, moradores e renda entram como dados de
-                segmentação para cruzar na planilha.
+                Você pode avançar no seu ritmo, voltar para rever
+                uma tela anterior e usar as etapas numeradas para acompanhar onde está. As estimativas da
+                calculadora são aproximadas, mas muito próximas da realidade e ajudam a transformar o tema em algo mais concreto para cada caso.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-muted-foreground">
                 <div className="bg-background/70 border border-border p-4">
-                  <span className="font-bold text-foreground">Perfil:</span> cidade/região, renda familiar e
-                  quantidade de pessoas na residência.
+                  <span className="font-bold text-foreground">Seu consumo:</span> use a conta de luz ou uma
+                  estimativa mensal em kWh para preencher a calculadora.
                 </div>
                 <div className="bg-background/70 border border-border p-4">
-                  <span className="font-bold text-foreground">Percepção:</span> expectativas de custo,
-                  payback, economia e barreiras percebidas.
+                  <span className="font-bold text-foreground">Economia:</span> veja uma projeção simples de
+                  quanto a energia solar pode representar no orçamento.
                 </div>
-                <div className="bg-background/70 border border-border p-4">
-                  <span className="font-bold text-foreground">Aprendizado:</span> comparação entre respostas
-                  antes e depois das telas informativas.
-                </div>
-                <div className="bg-background/70 border border-border p-4">
-                  <span className="font-bold text-foreground">Simulação:</span> consumo informado, economia,
-                  sistema estimado e impacto ambiental calculado no site.
-                </div>
+
               </div>
             </div>
 
@@ -983,41 +975,70 @@ const Survey = () => {
 
               {hasCalculated && calculatorResult ? (
                 <div className="space-y-4 pt-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
-                    <div className="bg-muted/30 border border-border p-3 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-[0.8fr_1.4fr_0.8fr] gap-2 md:gap-3">
+                    <div className="min-w-0 bg-muted/30 border border-border p-3 text-center">
                       <p className="text-xs text-muted-foreground">Sistema indicado</p>
-                      <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                      <p className="text-xl md:text-2xl font-black text-foreground mt-1">
                         {numberFormatter.format(calculatorResult.kwp)} kWp
                       </p>
                     </div>
-                    <div className="bg-muted/30 border border-border p-3 text-center">
+                    <div className="min-w-0 bg-muted/30 border border-border p-3 text-center">
                       <p className="text-xs text-muted-foreground">Investimento</p>
-                      <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                      <p className="text-xl md:text-2xl font-black text-foreground mt-1 whitespace-nowrap">
                         {currencyFormatter.format(calculatorResult.systemCost)}
                       </p>
                     </div>
-                    <div className="bg-muted/30 border border-border p-3 text-center">
+                    <div className="min-w-0 bg-muted/30 border border-border p-3 text-center">
                       <p className="text-xs text-muted-foreground">Retorno</p>
-                      <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                      <p className="text-xl md:text-2xl font-black text-foreground mt-1">
                         {numberFormatter.format(calculatorResult.paybackYears)} anos
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                    <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Economia mensal</p>
-                      <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                    <div className="bg-[hsl(var(--solar-green))] border border-[hsl(var(--solar-green))] p-4 text-center">
+                      <p className="text-xs font-bold uppercase tracking-wider text-accent-foreground/80">
+                        Economia mensal
+                      </p>
+                      <p className="text-2xl md:text-3xl font-black text-accent-foreground mt-1">
                         {currencyFormatter.format(calculatorResult.monthlySavings)}
                       </p>
                     </div>
-                    <div className="bg-[hsl(var(--solar-green))]/10 border border-[hsl(var(--solar-green))]/30 p-3 text-center">
-                      <p className="text-xs text-muted-foreground">Economia anual</p>
-                      <p className="text-base md:text-lg font-bold text-foreground mt-1">
+                    <div className="bg-[hsl(var(--solar-green))] border border-[hsl(var(--solar-green))] p-4 text-center">
+                      <p className="text-xs font-bold uppercase tracking-wider text-accent-foreground/80">
+                        Economia anual
+                      </p>
+                      <p className="text-2xl md:text-3xl font-black text-accent-foreground mt-1">
                         {currencyFormatter.format(calculatorResult.annualSavings)}
                       </p>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                    <div className="bg-muted/30 border border-border p-4 text-center">
+                      <Leaf className="w-6 h-6 text-primary mx-auto mb-2" />
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        CO₂ evitado em 25 anos
+                      </p>
+                      <p className="text-2xl md:text-3xl font-black text-primary mt-1">
+                        {numberFormatter.format(calculatorResult.avoidedCo2KgLifetime)} kg
+                      </p>
+                    </div>
+                    <div className="bg-muted/30 border border-border p-4 text-center">
+                      <Leaf className="w-6 h-6 text-primary mx-auto mb-2" />
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Árvores equivalentes*
+                      </p>
+                      <p className="text-2xl md:text-3xl font-black text-primary mt-1">
+                        {numberFormatter.format(calculatorResult.preservedTreesLifetime)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    *Equivalência de absorção de CO₂, não uma contagem literal de árvores preservadas.
+                  </p>
                 </div>
               ) : hasCalculated ? (
                 <p className="text-sm text-destructive">
@@ -1178,7 +1199,7 @@ const Survey = () => {
       {step === "calculator" && renderSolarCalculator()}
       {step === "content1" && renderEnvironmentalContent()}
       {step === "content2" && renderEnvironmentalContent2()}
-      {step === "form2" && renderForm("FORMULÁRIO 2 - PÓS-ESTUDO", postFormData, "post")}
+      {step === "form2" && renderForm("FORMULÁRIO 2 - Para fixar", postFormData, "post")}
 
       {step === "finished" && (
         <section className="relative min-h-screen flex items-center justify-center px-4 md:px-6 py-24 overflow-hidden">
@@ -1204,7 +1225,7 @@ const Survey = () => {
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
                         Economia mensal
                       </p>
-                      <p className="text-4xl md:text-5xl font-black text-primary">
+                      <p className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-black text-primary leading-none">
                         {currencyFormatter.format(calculatorResult.monthlySavings)}
                       </p>
                     </div>
@@ -1213,7 +1234,7 @@ const Survey = () => {
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
                         Sistema estimado
                       </p>
-                      <p className="text-2xl font-black text-foreground">
+                      <p className="text-3xl md:text-4xl font-black text-foreground">
                         {numberFormatter.format(calculatorResult.kwp)} kWp
                       </p>
                     </div>
@@ -1222,16 +1243,16 @@ const Survey = () => {
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
                         Retorno aproximado
                       </p>
-                      <p className="text-2xl font-black text-foreground">
+                      <p className="text-3xl md:text-4xl font-black text-foreground">
                         {numberFormatter.format(calculatorResult.paybackYears)} anos
                       </p>
                     </div>
-                    <div className="bg-background/70 border border-border p-4 md:p-5">
-                      <Leaf className="w-7 h-7 text-[hsl(var(--solar-green))] mb-3" />
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    <div className="bg-[hsl(var(--solar-green))] border border-[hsl(var(--solar-green))] p-4 md:p-5">
+                      <Leaf className="w-7 h-7 text-accent-foreground mb-3" />
+                      <p className="text-xs uppercase tracking-wider text-accent-foreground/80 mb-2">
                         CO₂ evitado em 25 anos
                       </p>
-                      <p className="text-2xl font-black text-foreground">
+                      <p className="text-3xl md:text-4xl font-black text-accent-foreground">
                         {numberFormatter.format(calculatorResult.avoidedCo2KgLifetime)} kg
                       </p>
                     </div>
