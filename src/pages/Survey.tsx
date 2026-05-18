@@ -366,7 +366,7 @@ const Survey = () => {
     const payload = {
       name: formData.name.trim(),
       residents: Number.parseInt(formData.residents, 10),
-      email: formData.email.trim(),
+      email: formData.email.trim().toLowerCase(),
       city: formData.city.trim(),
       income: formData.income,
       pre_q1: formData.q1,
@@ -401,7 +401,7 @@ const Survey = () => {
     try {
       const { error } = await supabase
         .from("survey_responses")
-        .insert(payload);
+        .upsert(payload, { onConflict: "email" });
 
       if (error) {
         throw error;

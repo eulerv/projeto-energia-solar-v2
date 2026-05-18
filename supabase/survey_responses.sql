@@ -6,7 +6,7 @@ create table public.survey_responses (
 
   name text not null,
   residents integer not null,
-  email text not null,
+  email text not null unique,
   city text not null,
   income text not null,
 
@@ -36,10 +36,17 @@ create table public.survey_responses (
 
 alter table public.survey_responses enable row level security;
 
-grant insert on public.survey_responses to anon;
+grant insert, update on public.survey_responses to anon;
 
 create policy "Allow anonymous survey inserts"
 on public.survey_responses
 for insert
 to anon
+with check (true);
+
+create policy "Allow anonymous survey updates"
+on public.survey_responses
+for update
+to anon
+using (true)
 with check (true);
