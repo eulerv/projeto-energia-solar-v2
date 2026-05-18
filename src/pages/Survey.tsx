@@ -399,16 +399,16 @@ const Survey = () => {
     setIsSubmittingSurvey(true);
 
     try {
-      const { error } = await supabase
-        .from("survey_responses")
-        .upsert(payload, { onConflict: "email" });
+      const { error } = await supabase.rpc("save_survey_response", {
+        response_payload: payload,
+      });
 
       if (error) {
         throw error;
       }
 
       setSurveySubmitted(true);
-      console.info("[Supabase] Respostas salvas em survey_responses.");
+      console.info("[Supabase] Resposta salva ou atualizada em survey_responses.");
       return true;
     } catch (error) {
       console.error("[Supabase] Falha ao salvar respostas:", error);
