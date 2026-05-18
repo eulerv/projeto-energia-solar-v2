@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import ScrollToTop from "@/components/ScrollToTop";
 import { useMask } from "@/hooks/useMask";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import gsap from "gsap";
 import { BarChart3, Calculator, ChevronLeft, ChevronRight, DollarSign, Leaf, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -133,23 +134,6 @@ const stepLabels: Record<SurveyStep, string> = {
   finished: "Resultado",
 };
 
-const GOOGLE_FORM_ACTION_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSeaGEmRIk_WFkJ0Mg00K3-pJlpEkgisbJDXJoAsSAtcH-I46w/formResponse";
-
-const googleFormEntries = {
-  name: "entry.1900898901",
-  residents: "entry.914662028",
-  email: "entry.759267602",
-  city: "entry.1931650814",
-  income: "entry.759899092",
-  q1: "entry.27851652",
-  q2: "entry.1267231955",
-  q3: "entry.1924706705",
-  q4: "entry.976539929",
-  q5: "entry.1505788005",
-  q6: "entry.381937918",
-} satisfies Record<keyof FormData, string>;
-
 const incomeOptions = [
   "Menos de 1 salário mínimo",
   "De 1 a 2 salários mínimos",
@@ -220,20 +204,6 @@ const getStepError = (
   return "";
 };
 
-const buildGoogleFormPayload = (data: FormData) => {
-  const payload = new URLSearchParams();
-
-  Object.entries(googleFormEntries).forEach(([field, entryId]) => {
-    const value = data[field as keyof FormData];
-
-    if (value.trim()) {
-      payload.append(entryId, value);
-    }
-  });
-
-  return payload;
-};
-
 const Survey = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -244,8 +214,8 @@ const Survey = () => {
   const [monthlyConsumption, setMonthlyConsumption] = useState("");
   const [hasCalculated, setHasCalculated] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmittingGoogleForm, setIsSubmittingGoogleForm] = useState(false);
-  const [googleFormSubmitted, setGoogleFormSubmitted] = useState(false);
+  const [isSubmittingSurvey, setIsSubmittingSurvey] = useState(false);
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const calculatorResult = useMemo(() => {
@@ -288,7 +258,7 @@ const Survey = () => {
     const resetSurvey = () => {
       setStep("intro");
       setErrorMessage("");
-      setGoogleFormSubmitted(false);
+      setSurveySubmitted(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -327,6 +297,10 @@ const Survey = () => {
   };
 
   const requestStepChange = async (targetStep: SurveyStep) => {
+    if (isSubmittingSurvey) {
+      return;
+    }
+
     const targetIndex = stepOrder.indexOf(targetStep);
     const currentIndex = stepOrder.indexOf(step);
     const error = targetIndex > currentIndex
@@ -343,8 +317,12 @@ const Survey = () => {
       return;
     }
 
-    if (step === "form1" && targetIndex > currentIndex && !googleFormSubmitted) {
-      const submitted = await submitGoogleForm();
+    if (
+      targetIndex > stepOrder.indexOf("form2") &&
+      targetIndex > currentIndex &&
+      !surveySubmitted
+    ) {
+      const submitted = await submitSurveyResponse();
 
       if (!submitted) {
         return;
@@ -371,40 +349,73 @@ const Survey = () => {
     setErrorMessage("");
   };
 
-  const submitGoogleForm = async () => {
-    const payload = buildGoogleFormPayload(formData);
-    const debugPayload = Object.fromEntries(payload.entries());
+  const submitSurveyResponse = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      setErrorMessage(
+        "Supabase nao configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no ambiente do app.",
+      );
+      return false;
+    }
 
-    console.groupCollapsed("[Google Forms] Envio do formulário 1");
-    console.info("URL:", GOOGLE_FORM_ACTION_URL);
-    console.info("Payload por entry ID:", debugPayload);
-    console.info("Dados locais:", formData);
-    console.warn(
-      "O envio usa mode: no-cors. O navegador não permite ler a resposta do Google Forms; confirme o sucesso na aba Respostas do Forms.",
-    );
+    if (!calculatorResult) {
+      setErrorMessage("Calcule seu potencial solar antes de finalizar.");
+      return false;
+    }
+
+    const monthlyConsumptionKwh = Number(monthlyConsumption.replace(",", "."));
+    const payload = {
+      name: formData.name.trim(),
+      residents: Number.parseInt(formData.residents, 10),
+      email: formData.email.trim(),
+      city: formData.city.trim(),
+      income: formData.income,
+      pre_q1: formData.q1,
+      pre_q2: formData.q2,
+      pre_q3: formData.q3,
+      pre_q4: formData.q4,
+      pre_q5: formData.q5,
+      pre_q6: formData.q6,
+      monthly_consumption_kwh: monthlyConsumptionKwh,
+      estimated_kwp: calculatorResult.kwp,
+      estimated_system_cost_brl: calculatorResult.systemCost,
+      estimated_monthly_savings_brl: calculatorResult.monthlySavings,
+      estimated_annual_savings_brl: calculatorResult.annualSavings,
+      estimated_payback_years: calculatorResult.paybackYears,
+      estimated_avoided_co2_kg_lifetime: calculatorResult.avoidedCo2KgLifetime,
+      estimated_trees_equivalent_lifetime: calculatorResult.preservedTreesLifetime,
+      post_q1: postFormData.q1,
+      post_q2: postFormData.q2,
+      post_q3: postFormData.q3,
+      post_q4: postFormData.q4,
+      post_q5: postFormData.q5,
+      post_q6: postFormData.q6,
+    };
+
+    console.groupCollapsed("[Supabase] Envio da pesquisa completa");
+    console.info("Tabela:", "survey_responses");
+    console.info("Payload:", payload);
     console.groupEnd();
 
-    setIsSubmittingGoogleForm(true);
+    setIsSubmittingSurvey(true);
 
     try {
-      await fetch(GOOGLE_FORM_ACTION_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: payload,
-      });
+      const { error } = await supabase
+        .from("survey_responses")
+        .insert(payload);
 
-      setGoogleFormSubmitted(true);
-      console.info("[Google Forms] Requisição enviada. Verifique a planilha/respostas do Forms.");
+      if (error) {
+        throw error;
+      }
+
+      setSurveySubmitted(true);
+      console.info("[Supabase] Respostas salvas em survey_responses.");
       return true;
     } catch (error) {
-      console.error("[Google Forms] Falha ao enviar:", error);
-      setErrorMessage("Não foi possível enviar as respostas ao Google Forms. Veja o console para detalhes.");
+      console.error("[Supabase] Falha ao salvar respostas:", error);
+      setErrorMessage("Nao foi possivel salvar suas respostas. Confira a conexao e tente novamente.");
       return false;
     } finally {
-      setIsSubmittingGoogleForm(false);
+      setIsSubmittingSurvey(false);
     }
   };
 
@@ -486,7 +497,8 @@ const Survey = () => {
         <button
           type="button"
           onClick={handleNext}
-          className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 inline-flex items-center justify-center gap-3"
+          disabled={isSubmittingSurvey}
+          className="relative text-base md:text-lg font-bold px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground overflow-hidden group transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70 inline-flex items-center justify-center gap-3"
         >
           <span className="relative z-10">{nextLabel}</span>
           <ChevronRight className="w-5 h-5 relative z-10" />
@@ -626,12 +638,11 @@ const Survey = () => {
 
             {form === "pre" && (
               <p className="animate-text text-xs md:text-sm text-muted-foreground leading-relaxed">
-                Ao avançar, suas respostas serão enviadas ao Google Forms em segundo plano. Abra o
-                console do navegador para ver os logs de integração por campo.
+                Suas respostas serao salvas com o restante da pesquisa ao concluir a trilha.
               </p>
             )}
 
-            {renderNavButtons(form === "pre" && isSubmittingGoogleForm ? "Enviando..." : "Avançar")}
+            {renderNavButtons(form === "post" && isSubmittingSurvey ? "Enviando..." : "Avançar")}
           </form>
         </div>
       </div>
